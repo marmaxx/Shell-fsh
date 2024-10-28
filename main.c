@@ -7,6 +7,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "externe.h"
+
 
 int main(){
     char *command; 
@@ -34,7 +36,8 @@ int main(){
             break;
         }
 
-        printf("%s", "test");
+        commande_externe(command);
+
         free(command);
 
 
