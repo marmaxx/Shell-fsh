@@ -21,6 +21,7 @@ void commande_externe(char *command){
     }
     args[com_cont] = NULL; //fin du tableau d'args avec null 
 
+    if (strcmp(args[0], "pwd")!=0 ){
     //creation d'un processus enfant pour executer la commande 
     pid_t pid = fork();
     if(pid < 0 ){
@@ -33,6 +34,6 @@ void commande_externe(char *command){
     } else {
         int status; 
         waitpid(pid, &status, 0); //processus parent attend la fin de l'execution du processus enfant 
+    }  
     }
-
 }
