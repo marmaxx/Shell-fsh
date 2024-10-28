@@ -6,15 +6,22 @@
 #include <fcntl.h> 
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <sys/syslimits.h>
 
+#include "prompt.h"
 
 int main(){
     char *command; 
+    int last_status = 0;
 
     while(1){
+        // Création du prompt
+        char prompt[PATH_MAX + 50];
+        create_prompt(last_status, prompt, sizeof(prompt));
+        printf("%s", prompt);
 
         // Lit la commande du user 
-        command = readline("$ "); 
+        command = readline(""); 
 
         if(command == NULL){
             break;
@@ -33,8 +40,13 @@ int main(){
             free(command); 
             break;
         }
-
-        printf("%s", "test");
+        else if (strcmp(command, "succes") == 0){
+            last_status = 0;
+        }
+        else { 
+            printf("%s : commande invalide ou pas encore implémentée :( -> try 'succes'\n", command);
+            last_status = -1;
+        }
         free(command);
 
 
