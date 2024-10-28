@@ -7,6 +7,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "pwd.h"
 
 int main(){
     char *command; 
@@ -28,16 +29,19 @@ int main(){
         add_history(command);
 
 
-        // Quite la boucle si le user ecrit exit 
+        // Quitte la boucle si le user ecrit exit 
         if(strcmp(command, "exit") == 0){
             free(command); 
             break;
         }
 
-        printf("%s", "test");
+        // Cas de la commande pwd
+        else if (strcmp(command, "pwd") == 0){
+            free(command);
+            printf("%s\n", chemin_absolu());
+        }
+
         free(command);
-
-
     }
     
     return 0;
