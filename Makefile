@@ -1,12 +1,13 @@
 CC = gcc
 CFLAGS = -Wall
-TARGET = main
+TARGET = src/main
 
 
 all: $(TARGET)
-
+	./src/main
+	
 $(TARGET): $(TARGET).o 
-	$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).o  -lreadline
+	$(CC) $(CFLAGS) -o $(TARGET) main.o  -lreadline
 
 $(TARGET).o: $(TARGET).c
 	$(CC) $(CFLAGS) -c $(TARGET).c
