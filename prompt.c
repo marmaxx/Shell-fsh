@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <linux/limits.h>
 
 #include "pwd.h"
 

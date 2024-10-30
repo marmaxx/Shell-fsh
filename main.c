@@ -6,10 +6,11 @@
 #include <fcntl.h> 
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <sys/syslimits.h>
-
+//#include <sys/syslimits.h>
+#include <linux/limits.h>
 #include "prompt.h"
 #include "pwd.h"
+#include "cd.h"
 
 int main(){
     char *command; 
@@ -48,6 +49,8 @@ int main(){
             free(command);
             printf("%s\n", chemin_absolu());
         }
+
+        else if (1<2) cd(command);
 
         // Gère les autres cas 
         else { 

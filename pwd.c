@@ -6,9 +6,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
- 
+#include <linux/limits.h>
 #include "pwd.h"
-#include <sys/syslimits.h>
+//#include <sys/syslimits.h>
 
 struct dirent *entry;
 
