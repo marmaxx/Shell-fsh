@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
-#include "externe.h"
+#include "../include/externe.h"
 
 #define MAX_COM 64 
 

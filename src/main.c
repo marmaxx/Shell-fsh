@@ -7,7 +7,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include "externe.h"
+#include "../include/externe.h"
 
 
 int main(){
