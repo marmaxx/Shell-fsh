@@ -27,6 +27,7 @@ void cd(char *command) {
     // Vérification si la commande est 'cd'
     if (strcmp(args[0], "cd") == 0) {
         struct stat infos;
+        char current_dir [PATH_MAX];
 
         // Cas où il n'y a pas d'argument après 'cd' : Aller vers HOME
         if (args[1] == NULL) {
@@ -45,18 +46,29 @@ void cd(char *command) {
             return;
         }
 
-        // Cas où l'argument est '-' : aller au répertoire parent et afficher le chemin absolu
+        // Cas où l'argument est '-' : aller au répertoire précédent et afficher le chemin absolu
         if (strcmp(args[1], "-") == 0) {
-            if (chdir("..") != 0) {
+            const char *env_oldpwd = getenv("OLDPWD");
+            if (env_oldpwd==NULL){
+                fprintf(stderr, "cd : erreur : OLDPWD non définie \n");
+                return;
+            }
+            if ((chdir(env_oldpwd)) != 0) {
                 perror("cd : erreur lors du changement vers le répertoire parent");
             }
-            chemin_absolu();  // Appelle la fonction pour afficher le chemin absolu
+            printf("%s\n", env_oldpwd);  // Affiche le chemin absolu
             return;
         }
 
         // Sinon, vérifie si args[1] est un répertoire et change de répertoire
         if (stat(args[1], &infos) == 0) {
             if (S_ISDIR(infos.st_mode)) {
+
+                // Sauvegarde l'ancien répertoire dans OLDPWD
+                if (getcwd(current_dir, sizeof(current_dir)) != NULL) {
+                    setenv("OLDPWD", current_dir, 1); // Met à jour OLDPWD
+                }
+
                 if (chdir(args[1]) != 0) {
                     perror("cd : erreur lors du changement de répertoire");
                 }
