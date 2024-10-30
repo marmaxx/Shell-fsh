@@ -1,15 +1,20 @@
+# Compilateur et options
 CC = gcc
 CFLAGS = -Wall
 TARGET = main
 
+# Trouve tous les fichiers .c dans le dossier + créer liste des fichiers objets .o 
+SRCS = $(wildcard *.c)
+OBJS = $(SRCS:.c=.o)
 
 all: $(TARGET)
 
-$(TARGET): $(TARGET).o 
-	$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).o  -lreadline
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) -lreadline
 
-$(TARGET).o: $(TARGET).c
-	$(CC) $(CFLAGS) -c $(TARGET).c
+# Règle de compilation fichier .c en .o
+%.o: %.c
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	rm -f *.o $(TARGET)
