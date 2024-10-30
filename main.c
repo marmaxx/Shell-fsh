@@ -9,6 +9,7 @@
 #include <sys/syslimits.h>
 
 #include "prompt.h"
+#include "pwd.h"
 
 int main(){
     char *command; 
@@ -35,21 +36,24 @@ int main(){
         add_history(command);
 
 
-        // Quite la boucle si le user ecrit exit 
+        // Quitte la boucle si le user ecrit exit 
         if(strcmp(command, "exit") == 0){
             free(command); 
             break;
         }
-        else if (strcmp(command, "succes") == 0){
+
+        // Gère le cas de la commande pwwd
+        else if (strcmp(command, "pwd") == 0){
             last_status = 0;
+            free(command);
+            printf("%s\n", chemin_absolu());
         }
+
+        // Gère les autres cas 
         else { 
-            printf("%s : commande invalide ou pas encore implémentée :( -> try 'succes'\n", command);
+            printf("%s : commande invalide ou pas encore implémentée !\n", command);
             last_status = -1;
         }
-        free(command);
-
-
     }
     
     return 0;
