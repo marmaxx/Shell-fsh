@@ -31,7 +31,7 @@ void create_prompt(int last_status, char *prompt, size_t size) {
 
     // Tronquer le chemin 
     size_t max_dir_length = 30;
-    char *truncated_cwd[PATH_MAX];
+    char truncated_cwd[PATH_MAX];
 
     if (strlen(cwd) > max_dir_length) {
         snprintf(truncated_cwd, sizeof(truncated_cwd), "...%s", cwd + strlen(cwd) - max_dir_length + 3);
