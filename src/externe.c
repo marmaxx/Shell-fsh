@@ -3,12 +3,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <limits.h>
+
 #include "../include/externe.h"
+#include "../include/prompt.h"
 
 #define MAX_COM 64 
 
 
-void commande_externe(char *command){
+int commande_externe(char *command){
     char *args[MAX_COM]; //tableau pour stocker les éléments de la commande 
     int com_cont = 0; //nombre d'élément dans la commande 
 
@@ -22,18 +25,21 @@ void commande_externe(char *command){
     args[com_cont] = NULL; //fin du tableau d'args avec null 
 
     if (strcmp(args[0], "pwd")!=0 ){
-    //creation d'un processus enfant pour executer la commande 
-    pid_t pid = fork();
-    if(pid < 0 ){
-        perror("Erreur de fork"); 
-    } else if(pid == 0 ){
-        if( execvp(args[0], args) < 0){  //execution de la commande 
-            perror("Erreur d'execution de la commande"); 
-            exit(EXIT_FAILURE); 
-        }
-    } else {
-        int status; 
-        waitpid(pid, &status, 0); //processus parent attend la fin de l'execution du processus enfant 
-    }  
+        //creation d'un processus enfant pour executer la commande 
+        pid_t pid = fork();
+        if(pid < 0 ){
+            perror("Erreur de fork");
+            return -1; 
+        } else if(pid == 0 ){
+            if(execvp(args[0], args) < 0){  //execution de la commande
+                //perror("Erreur d'execution de la commande"); 
+                return -1;
+            }
+        } else {
+            int status; 
+            waitpid(pid, &status, 0); //processus parent attend la fin de l'execution du processus enfant 
+            return 0;
+        }  
     }
+    return 0;
 }

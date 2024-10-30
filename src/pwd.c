@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <sys/stat.h>
  
-#include "pwd.h"
+#include "../include/pwd.h"
 #include <sys/syslimits.h>
 
 struct dirent *entry;

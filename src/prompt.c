@@ -4,7 +4,8 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include "pwd.h"
+#include "../include/pwd.h"
+#include "../include/prompt.h"
 
 #define GREEN "\001\033[32m\002"  
 #define RED "\001\033[91m\002"   

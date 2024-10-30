@@ -6,17 +6,24 @@
 #include <fcntl.h> 
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <limits.h>
 
 #include "../include/externe.h"
-
+#include "../include/prompt.h"
+#include "../include/pwd.h"
 
 int main(){
     char *command; 
+    int last_status = 0;
 
     while(1){
+        // Création du prompt
+        char prompt[PATH_MAX + 50];
+        create_prompt(last_status, prompt, sizeof(prompt));
+        printf("%s", prompt);
 
         // Lit la commande du user 
-        command = readline("$ "); 
+        command = readline(""); 
 
         if(command == NULL){
             break;
@@ -30,17 +37,29 @@ int main(){
         add_history(command);
 
 
-        // Quite la boucle si le user ecrit exit 
+        // Quitte la boucle si le user ecrit exit 
         if(strcmp(command, "exit") == 0){
             free(command); 
             break;
         }
 
-        commande_externe(command);
+        // Gère le cas de la commande pwwd
+        else if (strcmp(command, "pwd") == 0){
+            last_status = 0;
+            free(command);
+            printf("%s\n", chemin_absolu());
+        }
 
-        free(command);
-
-
+        // Gère les autres cas 
+        else if (commande_externe(command) == 0){
+            last_status = 0;
+            free(command);
+        }
+        else{
+            printf("%s : commande invalide ou pas encore implémentée !\n", command);
+            last_status = -1;
+            free(command);
+        }
     }
     
     return 0;
