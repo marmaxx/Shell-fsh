@@ -11,6 +11,8 @@
 #include "../include/externe.h"
 #include "../include/prompt.h"
 #include "../include/pwd.h"
+#include "../include/decoupeCmd.h"
+#include "../include/exit.h"
 
 int main(){
     char *command; 
@@ -36,22 +38,31 @@ int main(){
         // Ajoute la commande à l'historique
         add_history(command);
 
+        // decoupe la commande
+        char **args = decoupe(command);
+
 
         // Quitte la boucle si le user ecrit exit 
-        if(strcmp(command, "exit") == 0){
-            free(command); 
-            break;
+        if(strcmp(args[0], "exit") == 0){
+            char *exit_arg; // initialisation de la val d'exit
+            if(args[1] != NULL) {
+                exit_arg = args[1];
+            } else {
+                exit_arg = NULL;
+            }
+            func_exit(exit_arg,last_status); // exit 
+            free(command);
         }
 
         // Gère le cas de la commande pwwd
-        else if (strcmp(command, "pwd") == 0){
+        else if (strcmp(args[0], "pwd") == 0){
             last_status = 0;
             free(command);
             printf("%s\n", chemin_absolu());
         }
 
         // Gère les autres cas 
-        else if (commande_externe(command) == 0){
+        else if (commande_externe(args[0]) == 0){
             last_status = 0;
             free(command);
         }
