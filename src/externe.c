@@ -7,32 +7,29 @@
 
 #include "../include/externe.h"
 #include "../include/prompt.h"
+#include "../include/decoupeCmd.h"
+
 
 #define MAX_COM 64 
 
 
 int commande_externe(char *command){
-    char *args[MAX_COM]; //tableau pour stocker les éléments de la commande 
-    int com_cont = 0; //nombre d'élément dans la commande 
-
-
-    //découpe la commande en mot 
-    char *decoupe = strtok(command, " \n"); //decoupe par espace et retour à la ligne 
-    while(decoupe != NULL && com_cont < MAX_COM -1){
-        args[com_cont++] = decoupe; 
-        decoupe = strtok(NULL, " \n");//Passe à la prochaine decoupe ou retourne NULL 
+    char **args = decoupe(command) ; //tableau pour stocker les éléments de la commande 
+    if(args == NULL){
+        return -1;
     }
-    args[com_cont] = NULL; //fin du tableau d'args avec null 
 
     if (strcmp(args[0], "pwd")!=0 ){
         //creation d'un processus enfant pour executer la commande 
         pid_t pid = fork();
         if(pid < 0 ){
             perror("Erreur de fork");
+            free(args);
             return -1; 
         } else if(pid == 0 ){
             if(execvp(args[0], args) < 0){  //execution de la commande
-                //perror("Erreur d'execution de la commande"); 
+                perror("Erreur d'execution de la commande"); 
+                free(args);
                 return -1;
             }
         } else {
@@ -41,5 +38,6 @@ int commande_externe(char *command){
             return 0;
         }  
     }
+    free(args);
     return 0;
 }
