@@ -35,9 +35,6 @@ int main(){
             add_history(command);  // Ajouter la commande à l'historique
         }
 
-        // Ajoute la commande à l'historique
-        add_history(command);
-
         // decoupe la commande
         char **args = decoupe(command);
 
@@ -51,26 +48,25 @@ int main(){
                 exit_arg = NULL;
             }
             func_exit(exit_arg,last_status); // exit 
-            free(command);
         }
 
         // Gère le cas de la commande pwwd
         else if (strcmp(args[0], "pwd") == 0){
             last_status = 0;
-            free(command);
             printf("%s\n", chemin_absolu());
         }
 
         // Gère les autres cas 
-        else if (commande_externe(args[0]) == 0){
+        else if (commande_externe(args) == 0){
             last_status = 0;
-            free(command);
         }
         else{
             printf("%s : commande invalide ou pas encore implémentée !\n", command);
             last_status = -1;
-            free(command);
         }
+
+        free(command); 
+        free(args); 
     }
     
     return 0;

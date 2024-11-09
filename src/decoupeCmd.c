@@ -9,11 +9,7 @@
 
 char **decoupe(char *command){
     
-    char **args = malloc(MAX_COM * sizeof(char*)); 
-    if (args == NULL){
-        perror("erreur d'allocation"); 
-        return NULL;
-    }
+    char **args = malloc(MAX_COM * sizeof(char *));
     int com_cont = 0; //nombre d'élément dans la commande 
 
     //découpe la commande en mot 
