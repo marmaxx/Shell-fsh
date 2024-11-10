@@ -13,8 +13,7 @@
 #define MAX_COM 64 
 
 
-int commande_externe(char *command){
-    char **args = decoupe(command) ; //tableau pour stocker les éléments de la commande 
+int commande_externe(char **args){
     if(args == NULL){
         return -1;
     }
@@ -24,12 +23,10 @@ int commande_externe(char *command){
         pid_t pid = fork();
         if(pid < 0 ){
             perror("Erreur de fork");
-            free(args);
             return -1; 
         } else if(pid == 0 ){
             if(execvp(args[0], args) < 0){  //execution de la commande
                 perror("Erreur d'execution de la commande"); 
-                free(args);
                 return -1;
             }
         } else {
@@ -38,6 +35,5 @@ int commande_externe(char *command){
             return 0;
         }  
     }
-    free(args);
     return 0;
 }

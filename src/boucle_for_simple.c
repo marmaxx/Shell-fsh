@@ -8,7 +8,48 @@
 #include "../include/externe.h"
 #include "../include/decoupeCmd.h"
 
-void boucle_for_simple (const char * rep, const char * cmd){
+#define MAX_COM 64 
+
+char *replace_args(const char *arg, const char *file_name) {
+    const char *placeholder = "$F";
+    char *result;
+    char *insert_point;
+    int count = 0;
+    int placeholder_len = strlen(placeholder);
+    int file_name_len = strlen(file_name);
+
+    // Compter le nombre d'occurrences de "$F" dans arg
+    for (const char *tmp = arg; (tmp = strstr(tmp, placeholder)); ++tmp) {
+        count++;
+    }
+
+    // Calculer la taille de la nouvelle chaîne
+    result = malloc(strlen(arg) + (file_name_len - placeholder_len) * count + 1);
+    if (result == NULL) {
+        perror("Erreur d'allocation");
+        exit(1);
+    }
+
+    // Remplacer chaque occurrence de "$F" par file_name
+    insert_point = result;
+    while (count--) {
+        const char *p = strstr(arg, placeholder);
+        int len_before_placeholder = p - arg;
+        // Copier la partie avant "$F"
+        strncpy(insert_point, arg, len_before_placeholder);
+        insert_point += len_before_placeholder;
+        // Copier file_name à la place de "$F"
+        strcpy(insert_point, file_name);
+        insert_point += file_name_len;
+        // Avancer après "$F" dans arg
+        arg = p + placeholder_len;
+    }
+    // Copier le reste de arg
+    strcpy(insert_point, arg);
+    return result;
+}
+
+void boucle_for_simple (const char * rep, char * cmd){
     char **args = decoupe(cmd);
 
     struct dirent * entry;
@@ -20,9 +61,24 @@ void boucle_for_simple (const char * rep, const char * cmd){
     }
 
     while ((entry = readdir(d)) != NULL){
+        // On ne prend pas en compte les fichiers cachés
         if (entry->d_name[0] == '.') continue;
+        
+        // On remplace le $F par le nom du fichier courant
+        char **args_with_file = malloc(MAX_COM * sizeof(char *));
+        for (int i = 0; args[i] != NULL; i++) {
+            args_with_file[i] = replace_args(args[i], entry->d_name);
+        }
+        args_with_file[MAX_COM - 1] = NULL; // Terminer le tableau par NULL
 
-        commande_externe(args[0]);
+        // Exécuter la commande avec les arguments modifiés
+        commande_externe(args_with_file);
+
+        // Libérer la mémoire allouée pour args_with_file
+        for (int i = 0; args_with_file[i] != NULL; i++) {
+            free(args_with_file[i]);
+        }
+        free(args_with_file);
     }
 
     closedir(d);
