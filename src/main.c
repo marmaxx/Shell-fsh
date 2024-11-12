@@ -14,6 +14,7 @@
 #include "../include/pwd.h"
 #include "../include/decoupeCmd.h"
 #include "../include/exit.h"
+#include "../include/cd.h"
 
 int main(){
     char *command; 
