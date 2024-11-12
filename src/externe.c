@@ -14,7 +14,6 @@
 
 
 int commande_externe(char **args){
-int commande_externe(char **args){
     if(args == NULL){
         return -1;
     }

@@ -7,7 +7,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <limits.h>
-#include <linux/limits.h>
 
 #include "../include/externe.h"
 #include "../include/prompt.h"
