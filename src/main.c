@@ -7,12 +7,14 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <limits.h>
+#include <linux/limits.h>
 
 #include "../include/externe.h"
 #include "../include/prompt.h"
 #include "../include/pwd.h"
 #include "../include/decoupeCmd.h"
 #include "../include/exit.h"
+#include "../include/cd.h"
 
 int main(){
     char *command; 
@@ -59,6 +61,9 @@ int main(){
         // Gère les autres cas 
         else if (commande_externe(args) == 0){
             last_status = 0;
+        }
+        else if (cd(args)==0){
+            last_status=0;
         }
         else{
             printf("%s : commande invalide ou pas encore implémentée !\n", command);
