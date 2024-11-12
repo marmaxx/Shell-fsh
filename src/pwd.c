@@ -7,7 +7,6 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <limits.h>
-#include <linux/limits.h>
  
 #include "../include/pwd.h"
 //#include <sys/syslimits.h>
