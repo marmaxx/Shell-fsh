@@ -14,7 +14,9 @@
 #include "../include/pwd.h"
 #include "../include/decoupeCmd.h"
 #include "../include/exit.h"
+#include "../include/boucle_for_simple.h"
 #include "../include/cd.h"
+
 
 int main(){
     char *command; 
@@ -39,8 +41,7 @@ int main(){
 
         // decoupe la commande
         char **args = decoupe(command);
-
-
+        
         // Quitte la boucle si le user ecrit exit 
         if(strcmp(args[0], "exit") == 0){
             char *exit_arg; // initialisation de la val d'exit
@@ -56,6 +57,11 @@ int main(){
         else if (strcmp(args[0], "pwd") == 0){
             last_status = 0;
             printf("%s\n", chemin_absolu());
+        }
+
+        // Gère le cas de la commande for
+        else if (strcmp(args[0], "for") == 0){
+            boucle_for_simple(args[3], args[4]);
         }
 
         // Gère les autres cas 

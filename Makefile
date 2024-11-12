@@ -18,3 +18,6 @@ src/%.o: src/%.c
 
 clean:
 	rm -f src/*.o $(TARGET)
+
+run:
+	./src/main
