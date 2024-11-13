@@ -51,7 +51,7 @@ int main(){
             } else {
                 exit_arg = NULL;
             }
-            return func_exit(exit_arg,last_status); // exit 
+            exit(func_exit(exit_arg,last_status)); // exit 
         }
 
         // Gère le cas de la commande pwwd
