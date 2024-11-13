@@ -20,7 +20,7 @@ int func_exit(char *arg, int last_status){
             printf("val de exit invalide\n");
             return last_status;
         } else {
-           printf("Exit %d OK\n", (int)val);
+           //printf("Exit %d OK\n", (int)val);
             return (int)val; // quitte avec la valeur spécifié
         }
     }

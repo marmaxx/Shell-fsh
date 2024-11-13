@@ -7,7 +7,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <limits.h>
-//#include <linux/limits.h>
+#include <linux/limits.h>
 
 #include "../include/externe.h"
 #include "../include/prompt.h"
@@ -22,12 +22,14 @@
 int main(){
     char *command; 
     int last_status = 0;
+    rl_outstream = stderr;
 
     while(1){
         // Création du prompt
         char prompt[PATH_MAX + 50];
         create_prompt(last_status, prompt, sizeof(prompt));
         printf("%s", prompt);
+        fflush(stdout);
 
         // Lit la commande du user 
         command = readline(""); 
@@ -51,7 +53,7 @@ int main(){
             } else {
                 exit_arg = NULL;
             }
-            exit(func_exit(exit_arg,last_status)); // exit 
+            return func_exit(exit_arg,last_status); // exit 
         }
 
         // Gère le cas de la commande pwwd
