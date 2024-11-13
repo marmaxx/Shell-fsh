@@ -53,6 +53,7 @@ int main(){
             } else {
                 exit_arg = NULL;
             }
+            printf("val de retour après exit : %d \n", func_exit(exit_arg,last_status));
             return func_exit(exit_arg,last_status); // exit 
         }
 
@@ -79,7 +80,7 @@ int main(){
         }
         else{
             printf("%s : commande invalide ou pas encore implémentée !\n", command);
-            last_status = -1;
+            last_status = 1;
         }
 
         free(command); 

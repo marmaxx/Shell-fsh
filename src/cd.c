@@ -25,10 +25,10 @@ int cd(char ** args) {
             const char *home = getenv("HOME");
             if (home == NULL) {
                 fprintf(stderr, "cd : erreur : HOME non définie\n");
-                return -1;
+                return 1;
             } else if (chdir(home) != 0) {
                 perror("cd : erreur lors du changement de répertoire vers HOME");
-                return -1;
+                return 1;
             }
             return 0;
         }
@@ -36,7 +36,7 @@ int cd(char ** args) {
         // Vérifie si trop d'arguments sont fournis
         if (args[2] != NULL) {
             fprintf(stderr, "cd : trop d'arguments\n");
-            return -1;
+            return 1;
         }
 
         // Cas où l'argument est '-' : aller au répertoire précédent et afficher le chemin absolu
@@ -44,11 +44,11 @@ int cd(char ** args) {
             const char *env_oldpwd = getenv("OLDPWD");
             if (env_oldpwd==NULL){
                 fprintf(stderr, "cd : erreur : OLDPWD non définie \n");
-                return -1;
+                return 1;
             }
             if ((chdir(env_oldpwd)) != 0) {
                 perror("cd : erreur lors du changement vers le répertoire parent");
-                return -1;
+                return 1;
             }
             printf("%s\n", env_oldpwd);  // Affiche le chemin absolu
             return 0;
@@ -65,17 +65,17 @@ int cd(char ** args) {
 
                 if (chdir(args[1]) != 0) {
                     perror("cd : erreur lors du changement de répertoire");
-                    return -1;
+                    return 1;
                 }
                 return 0;
             } else {
                 fprintf(stderr, "cd : erreur : %s n'est pas un dossier\n", args[1]);
-                return -1;
+                return 1;
             }
         } else {
             perror("cd : erreur lors de la vérification du répertoire");
-            return -1;
+            return 1;
         }
     }
-    return -1;
+    return 1;
 }
