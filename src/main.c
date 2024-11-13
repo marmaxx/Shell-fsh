@@ -7,6 +7,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <limits.h>
+//#include <linux/limits.h>
 
 #include "../include/externe.h"
 #include "../include/prompt.h"
@@ -16,6 +17,7 @@
 #include "../include/boucle_for_simple.h"
 #include "../include/cd.h"
 
+#include "../include/ftype.h"
 
 int main(){
     char *command; 
@@ -68,6 +70,9 @@ int main(){
             last_status = 0;
         }
         else if (cd(args)==0){
+            last_status=0;
+        }
+        else if (ftype(args)==0){
             last_status=0;
         }
         else{

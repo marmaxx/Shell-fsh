@@ -18,7 +18,7 @@ int commande_externe(char **args){
         return -1;
     }
 
-    if (strcmp(args[0], "pwd")!=0 && strcmp(args[0], "cd")!=0){
+    if (strcmp(args[0], "pwd")!=0 && strcmp(args[0], "cd")!=0 && strcmp(args[0], "ftype")!=0){
         //creation d'un processus enfant pour executer la commande 
         pid_t pid = fork();
         if(pid < 0 ){
