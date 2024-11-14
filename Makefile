@@ -1,10 +1,10 @@
 # Compilateur et options
 CC = gcc
-CFLAGS = -Wall
-TARGET = src/main
+CFLAGS = -Wall -Iinclude
+TARGET = fsh
 
-# Trouve tous les fichiers .c dans le dossier + créer liste des fichiers objets .o 
-SRCS = $(wildcard src/*.c)
+# Liste des fichiers sources
+SRCS = fsh.c $(wildcard src/*.c)
 OBJS = $(SRCS:.c=.o)
 
 all: $(TARGET)
@@ -12,12 +12,15 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) -lreadline
 
-# Règle de compilation fichier .c en .o
+# Règle de compilation pour les fichiers .o dans src/ et pour fsh.c à la racine
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 src/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f src/*.o $(TARGET)
+	rm -f src/*.o *.o $(TARGET)
 
 run:
-	./src/main
+	./fsh
