@@ -7,10 +7,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <limits.h>
-#include <linux/limits.h>
  
 #include "../include/pwd.h"
-//#include <sys/syslimits.h>
 
 struct dirent *entry;
 
@@ -112,7 +110,13 @@ char *chemin_absolu() {
     }
 
     // Construction du chemin complet
-    sprintf(chemin_complet, "%s%s/", chemin_parent, nom);
+    if (strcmp(chemin_parent, "/") == 0) {
+        sprintf(chemin_complet, "/%s", nom);
+    } else {
+        sprintf(chemin_complet, "%s/%s", chemin_parent, nom);
+    }
+
+    free(chemin_parent);
 
     if (chdir(saved_cwd) == -1) {
         perror("Erreur lors de la restauration du répertoire");

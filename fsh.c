@@ -7,7 +7,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <limits.h>
-#include <linux/limits.h>
 
 #include "../include/externe.h"
 #include "../include/prompt.h"
@@ -68,15 +67,14 @@ int main(){
             boucle_for_simple(args[3], args[4]);
         }
 
-        // Gère les autres cas 
+        else if (strcmp(args[0], "cd") == 0){
+            last_status = cd(args);
+        }
+        else if (strcmp(args[0], "ftype") == 0){
+            last_status = ftype(args);
+        }
         else if (commande_externe(args) == 0){
             last_status = 0;
-        }
-        else if (cd(args)==0){
-            last_status=0;
-        }
-        else if (ftype(args)==0){
-            last_status=0;
         }
         else{
             printf("%s : commande invalide ou pas encore implémentée !\n", command);

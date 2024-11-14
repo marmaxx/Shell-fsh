@@ -7,7 +7,6 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <limits.h>
-#include <linux/limits.h>
 #define MAX_COM 64 
 
 #include "../include/cd.h"
