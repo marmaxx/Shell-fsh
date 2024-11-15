@@ -52,7 +52,7 @@ int main(){
             } else {
                 exit_arg = NULL;
             }
-            printf("val de retour après exit : %d \n", func_exit(exit_arg,last_status));
+            //printf("val de retour après exit : %d \n", func_exit(exit_arg,last_status));
             return func_exit(exit_arg,last_status); // exit 
         }
 

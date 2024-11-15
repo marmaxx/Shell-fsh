@@ -21,6 +21,10 @@ int cd(char ** args) {
 
         // Cas où il n'y a pas d'argument après 'cd' : Aller vers HOME
         if (args[1] == NULL) {
+            if (getcwd(current_dir, sizeof(current_dir)) != NULL) {
+                setenv("OLDPWD", current_dir, 1); // Met à jour OLDPWD
+                //fprintf(stderr, "%s\n", getenv("OLDPWD"));
+            }
             const char *home = getenv("HOME");
             if (home == NULL) {
                 fprintf(stderr, "cd : erreur : HOME non définie\n");
@@ -68,11 +72,11 @@ int cd(char ** args) {
                 }
                 return 0;
             } else {
-                fprintf(stderr, "cd : erreur : %s n'est pas un dossier\n", args[1]);
+                fprintf(stdout, "cd : erreur : %s n'est pas un dossier\n", args[1]);
                 return 1;
             }
         } else {
-            perror("cd : erreur lors de la vérification du répertoire");
+            //perror("cd : erreur lors de la vérification du répertoire");
             return 1;
         }
     }
