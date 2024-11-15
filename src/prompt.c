@@ -24,14 +24,14 @@ void create_prompt(int last_status, char *prompt, size_t size) {
 
     // Format de retour de la commande : [valeur] ou [SIG]
     char status[8];
-    if (last_status == 1) {
+    /*if (last_status == 1) {
         snprintf(status, sizeof(status), "SIG");
-    } else {
+    } else {*/
         snprintf(status, sizeof(status), "%d", last_status);
-    }
+    //}
 
     // Tronquer le chemin 
-    size_t max_dir_length = 30;
+    size_t max_dir_length = 25;
     char truncated_cwd[PATH_MAX];
 
     if (strlen(cwd) > max_dir_length) {
