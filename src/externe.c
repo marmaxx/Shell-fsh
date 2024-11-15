@@ -5,11 +5,13 @@
 #include <sys/wait.h>
 #include <limits.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 
 #include "../include/externe.h"
 #include "../include/prompt.h"
 #include "../include/decoupeCmd.h"
+#include "../include/ftype.h"
 
 
 #define MAX_COM 64 
@@ -20,7 +22,7 @@ int commande_externe(char **args){
         return 1;
     }
 
-    if (strcmp(args[0], "pwd")!=0 && strcmp(args[0], "exit")!=0 && strcmp(args[0], "cd")!=0 && strcmp(args[0], "ftype")!=0){
+    //if (strcmp(args[0], "pwd")!=0 && strcmp(args[0], "exit")!=0 && strcmp(args[0], "cd")!=0 && strcmp(args[0], "ftype")!=0){
         //creation d'un processus enfant pour executer la commande 
         pid_t pid = fork();
         if(pid < 0 ){
@@ -28,6 +30,8 @@ int commande_externe(char **args){
             exit(1);
         } else if(pid == 0 ){
             if(execvp(args[0], args) < 0){  //execution de la commande
+                printf("#%s#\n", args[0]);
+                printf("Code d'erreur : %d\n", errno);
                 perror("Erreur d'execution de la commande"); 
                 exit(1);
             }
@@ -40,7 +44,7 @@ int commande_externe(char **args){
             }
             return 0; 
         }  
-    }
+    //}
 
 
     return 0;

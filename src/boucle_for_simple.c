@@ -7,6 +7,7 @@
 
 #include "../include/externe.h"
 #include "../include/decoupeCmd.h"
+#include "../include/ftype.h"
 
 #define MAX_COM 64 
 
@@ -49,6 +50,26 @@ char *replace_args(const char *arg, const char *file_name) {
     return result;
 }
 
+char *ajouter_rep(const char *rep, const char *file_name) {
+    // Calculer la longueur totale de la chaîne résultante
+    size_t rep_len = strlen(rep);
+    size_t file_name_len = strlen(file_name);
+    
+    // Allouer de la mémoire pour la nouvelle chaîne (rep/ + file_name + '\0')
+    char *result = malloc(rep_len + file_name_len + 2);  // +2 pour '/' et '\0'
+    if (result == NULL) {
+        perror("Erreur d'allocation");
+        exit(1);
+    }
+
+    // Construire la nouvelle chaîne
+    strcpy(result, rep);       // Copier rep
+    strcat(result, "/");       // Ajouter '/'
+    strcat(result, file_name); // Ajouter le nom du fichier
+
+    return result;
+}
+
 void boucle_for_simple (const char * rep, char * cmd){
     char **args = decoupe(cmd);
 
@@ -70,9 +91,23 @@ void boucle_for_simple (const char * rep, char * cmd){
             args_with_file[i] = replace_args(args[i], entry->d_name);
         }
         args_with_file[MAX_COM - 1] = NULL; // Terminer le tableau par NULL
+        
+        args_with_file[1] = ajouter_rep(rep, args_with_file[1]);
+        
+        /*printf("Affichage dans for: \n");
+        int taille = sizeof(args_with_file) / sizeof(args_with_file[0]);
+        for (int i = 0; args_with_file[i] != NULL; i++) {
+            printf("%s#", args_with_file[i]);
+        }
+        printf("\n");*/
 
         // Exécuter la commande avec les arguments modifiés
-        commande_externe(args_with_file);
+        if (strcmp(args_with_file[0], "ftype") == 0){
+            ftype(args_with_file);
+        }
+        else{
+            commande_externe(args_with_file);
+        }
 
         // Libérer la mémoire allouée pour args_with_file
         for (int i = 0; args_with_file[i] != NULL; i++) {

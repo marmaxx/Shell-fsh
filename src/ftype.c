@@ -17,6 +17,7 @@ int ftype (char ** args){
         //Récupération du type de la référence
         struct stat buf;
         if (lstat(args[1], &buf)!=0){
+            fprintf(stderr, "la");
             //perror("ftype : erreur lors de l'exécution de lstat");
             return 1;
         }

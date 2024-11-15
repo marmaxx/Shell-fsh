@@ -53,7 +53,7 @@ int cd(char ** args) {
                 perror("cd : erreur lors du changement vers le répertoire parent");
                 return 1;
             }
-            printf("%s\n", env_oldpwd);  // Affiche le chemin absolu
+            //printf("%s\n", env_oldpwd);  // Affiche le chemin absolu
             return 0;
         }
 

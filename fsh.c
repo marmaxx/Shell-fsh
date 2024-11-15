@@ -43,7 +43,15 @@ int main(){
 
         // decoupe la commande
         char **args = decoupe(command);
-        
+
+        /*printf("Affichage dans fsh: \n");
+        int taille = sizeof(args) / sizeof(args[0]);
+        for (int i = 0; args[i] != NULL; i++) {
+            printf("%s#", args[i]);
+        }
+        printf("args[0] = %s et args[1] = %s\n", args[0], args[1]);
+        printf("\n");*/
+
         // Quitte la boucle si le user ecrit exit 
         if(strcmp(args[0], "exit") == 0){
             char *exit_arg; // initialisation de la val d'exit
