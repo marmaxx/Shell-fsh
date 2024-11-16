@@ -37,6 +37,11 @@ int main(){
             break;
         } 
 
+        if (strlen(command) == 0) {
+            free(command);  // Libère la mémoire allouée pour une commande vide
+            continue;  // Passe à la prochaine itération de la boucle sans découper une commande vide
+        }
+
         if (strlen(command) > 0) {
             add_history(command);  // Ajouter la commande à l'historique
         }
@@ -81,17 +86,14 @@ int main(){
         else if (strcmp(args[0], "ftype") == 0){
             last_status = ftype(args);
         }
-        else if (commande_externe(args) == 0){
-            last_status = 0;
-        }
         else{
-            printf("%s : commande invalide ou pas encore implémentée !\n", command);
-            last_status = 1;
+            //printf("%s : commande invalide ou pas encore implémentée !\n", command);
+            last_status = commande_externe(args);
         }
 
         free(command); 
         free(args); 
     }
     
-    return 0;
+    return last_status;
 }

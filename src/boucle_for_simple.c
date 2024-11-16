@@ -93,6 +93,7 @@ void boucle_for_simple (const char * rep, char * cmd){
         args_with_file[MAX_COM - 1] = NULL; // Terminer le tableau par NULL
         
         args_with_file[1] = ajouter_rep(rep, args_with_file[1]);
+        args_with_file[2] = NULL;
         
         /*printf("Affichage dans for: \n");
         int taille = sizeof(args_with_file) / sizeof(args_with_file[0]);

@@ -30,16 +30,19 @@ int commande_externe(char **args){
             exit(1);
         } else if(pid == 0 ){
             if(execvp(args[0], args) < 0){  //execution de la commande
-                printf("#%s#\n", args[0]);
-                printf("Code d'erreur : %d\n", errno);
-                perror("Erreur d'execution de la commande"); 
+                //printf("#%s#\n", args[0]);
+                //printf("Code d'erreur : %d\n", errno);
+                perror("redirect_exec"); 
                 exit(1);
             }
         } else {
             int status; 
             waitpid(pid, &status, 0); //processus parent attend la fin de l'execution du processus enfant 
             
-             if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+            if (WIFEXITED(status)){
+                return WEXITSTATUS(status);
+            } 
+            else{
                 return 1; // Indique un échec dans le parent
             }
             return 0; 
