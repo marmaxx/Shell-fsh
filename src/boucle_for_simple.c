@@ -9,7 +9,7 @@
 #include "../include/decoupeCmd.h"
 #include "../include/ftype.h"
 
-#define MAX_COM 64 
+#define MAX_COM 128 
 
 char *replace_args(const char *arg, const char *file_name) {
     const char *placeholder = "$F";
@@ -70,6 +70,16 @@ char *ajouter_rep(const char *rep, const char *file_name) {
     return result;
 }
 
+int find_index_file(char **array, const char *target) {
+    //int taille = sizeof(array) / sizeof(array[0]);
+    for (int i = 0; array[i] != NULL; i++) {
+        if (strstr(array[i], target) != NULL) {
+            return i; // Retourne l'indice si trouvé
+        }
+    }
+    return -1; // Retourne -1 si non trouvé
+}
+
 void boucle_for_simple (const char * rep, char * cmd){
     char **args = decoupe(cmd);
 
@@ -84,15 +94,18 @@ void boucle_for_simple (const char * rep, char * cmd){
     while ((entry = readdir(d)) != NULL){
         // On ne prend pas en compte les fichiers cachés
         if (entry->d_name[0] == '.') continue;
-        
+        int index;
         // On remplace le $F par le nom du fichier courant
         char **args_with_file = malloc(MAX_COM * sizeof(char *));
         for (int i = 0; args[i] != NULL; i++) {
+            if (find_index_file(args, "$F") == i){
+                index = i;
+            }
             args_with_file[i] = replace_args(args[i], entry->d_name);
         }
         args_with_file[MAX_COM - 1] = NULL; // Terminer le tableau par NULL
         
-        args_with_file[1] = ajouter_rep(rep, args_with_file[1]);
+        args_with_file[index] = ajouter_rep(rep, args_with_file[index]);
         args_with_file[2] = NULL;
         
         /*printf("Affichage dans for: \n");
@@ -104,6 +117,7 @@ void boucle_for_simple (const char * rep, char * cmd){
 
         // Exécuter la commande avec les arguments modifiés
         if (strcmp(args_with_file[0], "ftype") == 0){
+            args_with_file[2] = NULL;
             ftype(args_with_file);
         }
         else{

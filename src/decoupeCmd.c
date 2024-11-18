@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "../include/decoupeCmd.h"
 
@@ -9,46 +10,53 @@
 
 char **decoupe(char *command1) {
     char **args = malloc(MAX_COM * sizeof(char *));
-    int com_cont = 0; // nombre d'éléments dans la commande
-    int in_braces = 0; // Indicateur pour savoir si nous sommes dans une accolade
-    char * command = strdup(command1);
-    char *start = command;  // Pointeur pour marquer le début de chaque mot ou chaîne
-    char *decoupe = command;
+    if (!args) {
+        perror("Erreur d'allocation mémoire pour args");
+        exit(EXIT_FAILURE);
+    }
 
-    while (*decoupe != '\0' && com_cont < MAX_COM - 1) {
+    int com_cont = 0; // Nombre d'éléments dans la commande
+    int in_braces = 0; // Indicateur pour savoir si nous sommes dans des accolades
+    char *start = command1;  // Pointeur pour marquer le début de chaque mot ou chaîne
+    char *current = command1;
+
+    while (*current != '\0') {
         // Si nous rencontrons un espace ou un retour à la ligne, et nous ne sommes pas dans des accolades
-        if ((*decoupe == ' ' || *decoupe == '\n') && !in_braces) {
-            if (decoupe > start) {
-                args[com_cont++] = strndup(start, decoupe - start); // Ajoute l'argument
+        if (isspace(*current) && !in_braces) {
+            if (current > start) {
+                args[com_cont++] = strndup(start, current - start);
+                if (com_cont >= MAX_COM - 1) break; // Empêcher un débordement
             }
-            // Ignore les espaces ou nouvelles lignes
-            start = decoupe + 1;
+            start = current + 1; // Passer au prochain mot
         }
-        
-        // Si on rencontre une accolade ouvrante, on démarre le morceau entre accolades
-        else if (*decoupe == '{') {
-            in_braces = 1; // On entre dans une portion entre accolades
-            start = decoupe + 1; // Ignore l'accolade ouvrante
-        }
-
-        // Si on rencontre une accolade fermante, on termine le morceau entre accolades
-        else if (*decoupe == '}') {
+        // Si on rencontre une accolade ouvrante
+        else if (*current == '{') {
             if (in_braces) {
-                in_braces = 0; // On sort de la portion entre accolades
-                args[com_cont++] = strndup(start, decoupe - start); // Ajoute le contenu entre accolades
+                fprintf(stderr, "Erreur : accolade ouvrante supplémentaire détectée.\n");
+                exit(EXIT_FAILURE);
             }
-            start = decoupe + 1; // Ignore l'accolade fermante
+            in_braces = 1;
+            start = current + 1;
         }
-        
-        decoupe++; // Passe à l'élément suivant
+        // Si on rencontre une accolade fermante
+        else if (*current == '}') {
+            if (!in_braces) {
+                fprintf(stderr, "Erreur : accolade fermante sans ouverture détectée.\n");
+                exit(EXIT_FAILURE);
+            }
+            in_braces = 0;
+            args[com_cont++] = strndup(start, current - start);
+            if (com_cont >= MAX_COM - 1) break;
+            start = current + 1;
+        }
+        current++;
     }
 
-    // Si la commande se termine sans espace, ajouter le dernier argument
-    if (decoupe > start) {
-        args[com_cont++] = strndup(start, decoupe - start);
+    // Ajouter le dernier argument s'il y en a un
+    if (current > start) {
+        args[com_cont++] = strndup(start, current - start);
     }
 
-    args[com_cont] = NULL; // Fin du tableau d'arguments avec NULL
-    free(command);
+    args[com_cont] = NULL; // Terminer le tableau d'arguments avec NULL
     return args;
 }
