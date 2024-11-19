@@ -66,7 +66,13 @@ int main(){
                 exit_arg = NULL;
             }
             //printf("val de retour après exit : %d \n", func_exit(exit_arg,last_status));
-            return func_exit(exit_arg,last_status); // exit 
+            int exit_value = func_exit(exit_arg,last_status); // exit 
+            free(command);
+            for (int i = 0; args[i] != NULL; i++) {
+                free(args[i]);
+            }
+            free(args);
+            return exit_value; 
         }
 
         // Gère le cas de la commande pwwd
@@ -92,6 +98,9 @@ int main(){
         }
 
         free(command); 
+        for (int i = 0; args[i] != NULL; i++) {
+            free(args[i]);
+        }
         free(args); 
     }
     

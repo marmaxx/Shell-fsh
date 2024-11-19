@@ -124,9 +124,9 @@ void boucle_for_simple (const char * rep, char * cmd){
         }
 
         // Libérer la mémoire allouée pour args_with_file
-        for (int i = 0; args_with_file[i] != NULL; i++) {
+        /*for (int i = 0; args_with_file[i] != NULL; i++) {
             free(args_with_file[i]);
-        }
+        }*/
         free(args_with_file);
     }
 

@@ -68,6 +68,7 @@ char *nom_du_repertoire() {
     }
 
     return dir_name;
+    free(dir_name);
 }
 
 // Fonction qui récupère le chemin absolu du répertoire courant
@@ -95,16 +96,22 @@ char *chemin_absolu() {
     // On remonte d'un niveau dans l'arborescence 
     if (chdir("..") == -1) {
         perror("Erreur lors de chdir");
+        free(nom);
         exit(EXIT_FAILURE);
     }
 
     char *chemin_parent = chemin_absolu();
+    if (!chemin_parent) {
+        free(nom);
+        exit(EXIT_FAILURE);
+    }
 
     // On concatène le nom du répertoire courant au chemin du parent 
     size_t len = strlen(chemin_parent) + strlen(nom) + 2;
     char *chemin_complet = malloc(len);
     if (chemin_complet == NULL) {
         perror("Erreur d'allocation mémoire");
+        free(nom);
         free(chemin_complet);
         exit(EXIT_FAILURE);
     }
@@ -116,6 +123,7 @@ char *chemin_absolu() {
         sprintf(chemin_complet, "%s/%s", chemin_parent, nom);
     }
 
+    free(nom);
     free(chemin_parent);
 
     if (chdir(saved_cwd) == -1) {

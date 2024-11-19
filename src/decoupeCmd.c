@@ -24,7 +24,12 @@ char **decoupe(char *command1) {
         // Si nous rencontrons un espace ou un retour à la ligne, et nous ne sommes pas dans des accolades
         if (isspace(*current) && !in_braces) {
             if (current > start) {
-                args[com_cont++] = strndup(start, current - start);
+                args[com_cont] = strndup(start, current - start);
+                if (!args[com_cont]){
+                    perror("erreur allocation mémoire");
+                    goto cleanup;
+                }
+                com_cont++;
                 if (com_cont >= MAX_COM - 1) break; // Empêcher un débordement
             }
             start = current + 1; // Passer au prochain mot
@@ -33,7 +38,7 @@ char **decoupe(char *command1) {
         else if (*current == '{') {
             if (in_braces) {
                 fprintf(stderr, "Erreur : accolade ouvrante supplémentaire détectée.\n");
-                exit(EXIT_FAILURE);
+                goto cleanup;
             }
             in_braces = 1;
             start = current + 1;
@@ -42,10 +47,15 @@ char **decoupe(char *command1) {
         else if (*current == '}') {
             if (!in_braces) {
                 fprintf(stderr, "Erreur : accolade fermante sans ouverture détectée.\n");
-                exit(EXIT_FAILURE);
+                goto cleanup;
             }
             in_braces = 0;
             args[com_cont++] = strndup(start, current - start);
+            if (!args[com_cont]){
+                perror("erreur allocation mémoire");
+                goto cleanup;
+            }
+            com_cont++;
             if (com_cont >= MAX_COM - 1) break;
             start = current + 1;
         }
@@ -55,8 +65,20 @@ char **decoupe(char *command1) {
     // Ajouter le dernier argument s'il y en a un
     if (current > start) {
         args[com_cont++] = strndup(start, current - start);
+        if (!args[com_cont]){
+            perror("erreur allocation mémoire");
+            goto cleanup;
+        }
+        com_cont++;
     }
 
     args[com_cont] = NULL; // Terminer le tableau d'arguments avec NULL
     return args;
+
+    cleanup : 
+    for (int i = 0; i < com_cont; i++) {
+        free(args[i]);
+    }
+    free(args);
+    exit(EXIT_FAILURE);
 }
