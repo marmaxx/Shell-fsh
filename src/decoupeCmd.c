@@ -50,7 +50,7 @@ char **decoupe(char *command1) {
                 goto cleanup;
             }
             in_braces = 0;
-            args[com_cont++] = strndup(start, current - start);
+            args[com_cont] = strndup(start, current - start);
             if (!args[com_cont]){
                 perror("erreur allocation mémoire");
                 goto cleanup;
@@ -64,7 +64,7 @@ char **decoupe(char *command1) {
 
     // Ajouter le dernier argument s'il y en a un
     if (current > start) {
-        args[com_cont++] = strndup(start, current - start);
+        args[com_cont] = strndup(start, current - start);
         if (!args[com_cont]){
             perror("erreur allocation mémoire");
             goto cleanup;
