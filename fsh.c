@@ -86,17 +86,17 @@ int main(){
 
         if (strlen(command) > 0) {
             add_history(command);  // Ajouter la commande à l'historique
-        }
+        
+        if (is_redirection(command) == 1){
+            printf("on a bien une redirection\n");
+            last_status = 0;
+        }}
 
         if (is_structured(command)){
             //printf("c'est structuré ! \n");
             last_status = execute_structured_command(command, last_status);
         }
 
-        if (is_redirection(command)){
-            printf("on a bien une redirection\n");
-            last_status = 0;
-        }
         else{
             // decoupe la commande
             char **args = decoupe(command);
