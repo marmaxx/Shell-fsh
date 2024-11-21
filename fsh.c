@@ -17,6 +17,7 @@
 #include "../include/cd.h"
 #include "../include/ftype.h"
 #include "../include/commande_structuree.h"
+#include "../include/redirection.h"
 
 int execute_commande_quelconque(char **args, int last_status, char *command){
     // Quitte la boucle si le user ecrit exit 
@@ -90,6 +91,11 @@ int main(){
         if (is_structured(command)){
             //printf("c'est structuré ! \n");
             last_status = execute_structured_command(command, last_status);
+        }
+
+        if (is_redirection(command)){
+            printf("on a bien une redirection\n");
+            last_status = 0;
         }
         else{
             // decoupe la commande
