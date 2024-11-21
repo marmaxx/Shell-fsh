@@ -48,8 +48,9 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
         last_status = ftype(args);
     }
     /*else if(strcmp(args[0], "if") == 0){
-        if (test(args[1])) last_status = commande_externe(args[2]);
-        else if (args[4] != NULL) last_status = commande_externe(args[4]);
+        char **test = decoupe(args[1]);
+        if (execute_commande_quelconque(test, last_status, args[1])) last_status = commande_externe(decoupe(args[3]));
+        else if (args[4] != NULL) last_status = commande_externe(decoupe(args[5]));
     }*/
     else{
         //printf("%s : commande invalide ou pas encore implémentée !\n", command);
@@ -89,7 +90,10 @@ int main(){
 
         if (is_structured(command)){
             //printf("c'est structuré ! \n");
-            last_status = execute_structured_command(command, last_status);
+            int *result;
+            result = execute_structured_command(command, last_status);
+            last_status = result[1];
+            if (result[0] != 0) return last_status;
         }
         else{
             // decoupe la commande
