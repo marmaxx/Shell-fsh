@@ -72,8 +72,6 @@ int execute_structured_command(const char *command, int last_status){
     int result;
     char **commande_decoupee = decoupe_commande_structuree(command);
 
-    //printf("comm[0] = #%s# et comm[1] = #%s# et comm[2] = #%s#\n", commande_decoupee[0], commande_decoupee[1], commande_decoupee[2]);
-
     for (int i = 0; commande_decoupee[i] != NULL; i++) {
         char *args = commande_decoupee[i];
 

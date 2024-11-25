@@ -117,18 +117,7 @@ int boucle_for_simple (const char * rep, char * cmd, int last_status){
 
         // Exécuter la commande avec les arguments modifiés
         result = execute_commande_quelconque(args_with_file, last_status, cmd);
-        /*if (strcmp(args_with_file[0], "ftype") == 0){
-            args_with_file[2] = NULL;
-            ftype(args_with_file);
-        }
-        else{
-            commande_externe(args_with_file);
-        }*/
-
-        // Libérer la mémoire allouée pour args_with_file
-        /*for (int i = 0; args_with_file[i] != NULL; i++) {
-            free(args_with_file[i]);
-        }*/
+    
         free(args_with_file);
     }
 

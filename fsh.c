@@ -47,10 +47,6 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
     else if (strcmp(args[0], "ftype") == 0){
         last_status = ftype(args);
     }
-    /*else if(strcmp(args[0], "if") == 0){
-        if (test(args[1])) last_status = commande_externe(args[2]);
-        else if (args[4] != NULL) last_status = commande_externe(args[4]);
-    }*/
     else{
         //printf("%s : commande invalide ou pas encore implémentée !\n", command);
         last_status = commande_externe(args);
