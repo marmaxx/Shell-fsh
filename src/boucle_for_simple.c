@@ -52,21 +52,19 @@ char *replace_args(const char *arg, const char *file_name) {
 }
 
 char *ajouter_rep(const char *rep, const char *file_name) {
-    // Calculer la longueur totale de la chaîne résultante
     size_t rep_len = strlen(rep);
     size_t file_name_len = strlen(file_name);
     
-    // Allouer de la mémoire pour la nouvelle chaîne (rep/ + file_name + '\0')
     char *result = malloc(rep_len + file_name_len + 2);  // +2 pour '/' et '\0'
     if (result == NULL) {
         perror("Erreur d'allocation");
         exit(1);
     }
 
-    // Construire la nouvelle chaîne
-    strcpy(result, rep);       // Copier rep
-    strcat(result, "/");       // Ajouter '/'
-    strcat(result, file_name); // Ajouter le nom du fichier
+    // On construit la nouvelle chaîne
+    strcpy(result, rep);   
+    strcat(result, "/");      
+    strcat(result, file_name); 
 
     return result;
 }

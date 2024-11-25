@@ -73,14 +73,14 @@ char *nom_du_repertoire() {
 
 // Fonction qui récupère le chemin absolu du répertoire courant
 char *chemin_absolu() {
-    // Sauvegarder le répertoire courant
+    // On sauvegarde le répertoire courant
     char saved_cwd[PATH_MAX];
     if (getcwd(saved_cwd, sizeof(saved_cwd)) == NULL) {
         perror("Erreur lors de la sauvegarde du répertoire courant");
         exit(EXIT_FAILURE);
     }
 
-    // Vérifie si le répertoire courant est la racine 
+    // On vérifie si le répertoire courant est la racine 
     struct stat stat_cur, stat_parent;
     if (stat(".", &stat_cur) == -1 || stat("..", &stat_parent) == -1) {
         perror("Erreur lors de stat");
@@ -116,7 +116,7 @@ char *chemin_absolu() {
         exit(EXIT_FAILURE);
     }
 
-    // Construction du chemin complet
+    // On construit le chemin complet
     if (strcmp(chemin_parent, "/") == 0) {
         sprintf(chemin_complet, "/%s", nom);
     } else {

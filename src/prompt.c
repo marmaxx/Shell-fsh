@@ -18,15 +18,15 @@ void create_prompt(int last_status, char *prompt, size_t size) {
     // Récupération du chemin absolu grâce à la fonction créée dans pwd.c
     char *cwd = chemin_absolu();
 
-    // Déterminer la couleur en fonction du dernier statut
+    // On détermine la couleur en fonction du dernier statut
     const char *status_color = (last_status == 0) ? GREEN : RED;
     const char *dir_color = (last_status == 0) ? BLUE : CYAN;
 
-    // Format de retour de la commande : [valeur] ou [SIG]
+    // Format de retour de la commande en focntion du dernier statut
     char status[8];
     snprintf(status, sizeof(status), "%d", last_status);
 
-    // Tronquer le chemin 
+    // On tronque le chemin 
     size_t max_dir_length = 25;
     char truncated_cwd[PATH_MAX];
 

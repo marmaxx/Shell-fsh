@@ -19,7 +19,7 @@ int is_structured(const char *command) {
 char *trim_whitespace(char *str) {
     if (!str) return NULL;
 
-    // Supprimer les espaces en début
+    // On supprime les espaces en début
     while (isspace((unsigned char)*str)) {
         str++;
     }
@@ -29,7 +29,7 @@ char *trim_whitespace(char *str) {
         return str;
     }
 
-    // Supprimer les espaces en fin
+    // On supprime les espaces en fin
     char *end = str + strlen(str) - 1;
     while (end > str && isspace((unsigned char)*end)) {
         *end-- = '\0';
@@ -45,7 +45,7 @@ char **decoupe_commande_structuree(const char *command) {
         exit(EXIT_FAILURE);
     }
 
-    char *command_copy = strdup(command); // Créer une copie modifiable de la commande
+    char *command_copy = strdup(command); 
     if (!command_copy) {
         perror("Erreur d'allocation mémoire pour la copie");
         free(sub_commands);
@@ -55,16 +55,16 @@ char **decoupe_commande_structuree(const char *command) {
     char *current = strtok(command_copy, ";");
     int cmd_count = 0;
 
-    // Découper les sous-commandes par `;`
+    // On découpe les sous-commandes par `;`
     while (current != NULL && cmd_count < MAX_COM - 1) {
-        // Nettoyer les espaces autour de la sous-commande
+        // On enlève les espaces autour de la sous-commande
         sub_commands[cmd_count++] = strdup(trim_whitespace(current));
         current = strtok(NULL, ";");
     }
 
     sub_commands[cmd_count] = NULL; // Terminer le tableau avec NULL
 
-    free(command_copy); // Libérer la copie de la commande d'origine
+    free(command_copy); 
     return sub_commands;
 }
 
