@@ -2,5 +2,6 @@
 #define REDIRECTION_H
 
 int is_redirection(const char *cmd);
+int make_redirection(char *cmd,int last_status);
 
 #endif

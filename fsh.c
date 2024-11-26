@@ -73,9 +73,10 @@ int main(){
         fflush(stderr);
 
         // Lit la commande du user 
-        command = readline(""); 
+        command = readline("");
 
         if(command == NULL){
+            //printf("on sort de la boucle while");
             break;
         } 
 
@@ -86,13 +87,16 @@ int main(){
 
         if (strlen(command) > 0) {
             add_history(command);  // Ajouter la commande à l'historique
+        }
         
-        if (is_redirection(command) == 1){
-            printf("on a bien une redirection\n");
-            last_status = 0;
-        }}
+        //execution de redirection 
+        if (is_redirection(command) == 0){
+            //printf("on a bien une redirection\n");
+            last_status = make_redirection(command,last_status);
+            free(command);
+        }
 
-        if (is_structured(command)){
+        else if (is_structured(command)){
             //printf("c'est structuré ! \n");
             last_status = execute_structured_command(command, last_status);
         }
