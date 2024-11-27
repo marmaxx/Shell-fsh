@@ -15,12 +15,12 @@ int executer_commande_if_else (char ** args, int last_status){
         test[i-1] = args[i];
         current++;
     }
-    printf("Affichage de test : \n");
+    /*printf("Affichage de test : \n");
             
     for (int i = 0; test[i] != NULL; i++) {
         printf("%s#", test[i]);
     }
-    printf("\n%d\n", current);
+    printf("\n%d\n", current);*/
 
     int result = 0;
     int execute_test = execute_commande_quelconque(test, last_status, args[1]);
@@ -35,17 +35,20 @@ int executer_commande_if_else (char ** args, int last_status){
     if (execute_test == 0){
         char **commande_if = malloc(MAX_COM * sizeof(char));
         int tmp = current;
+        int size = 0;
         for (int i = tmp; strcmp(args[i], "}") != 0; i++){
             commande_if[i-tmp] = args[i];
             current++;
+            size++;
         }
+        commande_if[size] = args[current];
 
-        printf("Affichage de commande_if : \n");
+        /*printf("Affichage de commande_if : \n");
             
         for (int i = 0; commande_if[i] != NULL; i++) {
             printf("%s#", commande_if[i]);
         }
-        printf("\n%d\n", current);
+        printf("\n%d\n", current);*/
         result = execute_commande_quelconque(commande_if, last_status, args[2]);
 
         if (strcmp(args[current], "}") != 0){
