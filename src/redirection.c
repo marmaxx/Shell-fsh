@@ -137,7 +137,7 @@ int make_redirection(char* cmd, int last_status){
     }
 
     /* Gestion de la redirection de sortie standard */
-    else if (strcmp(dec[i], ">") == 0 || strcmp(dec[i], ">>") == 0 ) {
+    else if (strcmp(dec[i], ">") == 0 || strcmp(dec[i], ">>") == 0 || strcmp(dec[i], ">|") == 0) {
 
         /* Copie de la sortie standart */
         int stdout_backup = dup(STDOUT_FILENO);
@@ -150,6 +150,8 @@ int make_redirection(char* cmd, int last_status){
         int flags = 0; 
         if (strcmp(dec[i], ">>") == 0){
             flags = (O_APPEND | O_CREAT | O_WRONLY);
+        } else if (strcmp(dec[i], ">|") == 0){
+            flags = (O_CREAT | O_WRONLY | O_TRUNC);
         } else {
             flags = ( O_CREAT | O_WRONLY | O_EXCL);
         }
