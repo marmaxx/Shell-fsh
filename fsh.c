@@ -46,6 +46,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
         last_status = cd(args);
     }
     else if (strcmp(args[0], "ftype") == 0){
+        args[2] = NULL;
         last_status = ftype(args);
     }
     else if(strcmp(args[0], "if") == 0){
@@ -92,6 +93,7 @@ int main(){
             result = execute_structured_command(command, last_status);
             last_status = result[1];
             if (result[0] != 0) return last_status;
+            free(command);
         }
         else{
             // decoupe la commande
@@ -108,6 +110,8 @@ int main(){
             // Quitte la boucle si le user ecrit exit 
             if(strcmp(args[0], "exit") == 0){
                 last_status = execute_commande_quelconque(args, last_status, command);
+                free(command);
+                free(args);
                 return last_status;
             }
             else{
@@ -116,8 +120,8 @@ int main(){
             free(command); 
             /*for (int i = 0; args[i] != NULL; i++) {
                 free(args[i]);
-            }
-            free(args);*/
+            }*/
+            free(args);
         }
     }
     

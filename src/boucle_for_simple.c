@@ -83,12 +83,12 @@ int find_index_file(char **array, const char *target) {
 
 int boucle_for_simple (char ** args, int last_status, char * cmd){
     //char **args = decoupe(cmd);
-    printf("Affichage dans for: \n");
+    /*printf("Affichage dans for: \n");
             
     for (int i = 0; args[i] != NULL; i++) {
         printf("%s#", args[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
     char *rep = args[3]; // on récupère le nom du répertoire 
     
@@ -103,9 +103,11 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
 
     char **commande = malloc(MAX_COM * sizeof(char));
     int tmp = current;
+    int size = 0;
     for (int i = tmp; strcmp(args[i], "}") != 0; i++){
         commande[i-tmp] = args[i];
         current++;
+        size++;
     }
 
     int result;
@@ -123,7 +125,7 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
         int index;
         // On remplace le $F par le nom du fichier courant
         char **args_with_file = malloc(MAX_COM * sizeof(char *));
-        for (int i = 0; commande[i] != NULL; i++) {
+        for (int i = 0; i < size; i++) {
             if (find_index_file(commande, "$F") == i){
                 index = i;
             }
@@ -151,12 +153,13 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
         }*/
 
         // Libérer la mémoire allouée pour args_with_file
-        for (int i = 0; args_with_file[i] != NULL; i++) {
+        /*for (int i = 0; args_with_file[i] != NULL; i++) {
             free(args_with_file[i]);
-        }
+        }*/
         free(args_with_file);
     }
 
+    free(commande);
     closedir(d);
     
     return result;
