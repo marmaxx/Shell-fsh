@@ -17,8 +17,9 @@
 #include "../include/cd.h"
 #include "../include/ftype.h"
 #include "../include/commande_structuree.h"
+#include "../include/if_else.h"
 
-int execute_commande_quelconque(char **args, int last_status, char *command){
+int execute_commande_quelconque(char **args, int last_status, char *command, int bool){
     // Quitte la boucle si le user ecrit exit 
     if(strcmp(args[0], "exit") == 0){
         char *exit_arg; // initialisation de la val d'exit
@@ -33,25 +34,23 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
     // Gère le cas de la commande pwwd
     else if (strcmp(args[0], "pwd") == 0){
         last_status = 0;
-        printf("%s\n", chemin_absolu());
+        if (bool == 0) printf("%s\n", chemin_absolu());
     }
 
     // Gère le cas de la commande for
     else if (strcmp(args[0], "for") == 0){
-        last_status = boucle_for_simple(args[3], args[4], last_status);
+        last_status = boucle_for_simple(args[3], args[4], last_status, bool);
     }
 
     else if (strcmp(args[0], "cd") == 0){
         last_status = cd(args);
     }
     else if (strcmp(args[0], "ftype") == 0){
-        last_status = ftype(args);
+        last_status = ftype(args, bool);
     }
-    /*else if(strcmp(args[0], "if") == 0){
-        char **test = decoupe(args[1]);
-        if (execute_commande_quelconque(test, last_status, args[1])) last_status = commande_externe(decoupe(args[3]));
-        else if (args[4] != NULL) last_status = commande_externe(decoupe(args[5]));
-    }*/
+    else if(strcmp(args[0], "if") == 0){
+        last_status = executer_commande_if_else(args, last_status);
+    }
     else{
         //printf("%s : commande invalide ou pas encore implémentée !\n", command);
         last_status = commande_externe(args);
@@ -89,7 +88,6 @@ int main(){
         }
 
         if (is_structured(command)){
-            //printf("c'est structuré ! \n");
             int *result;
             result = execute_structured_command(command, last_status);
             last_status = result[1];
@@ -100,6 +98,7 @@ int main(){
             char **args = decoupe(command);
 
             printf("Affichage dans fsh: \n");
+            
             int taille = sizeof(args) / sizeof(args[0]);
             for (int i = 0; args[i] != NULL; i++) {
                 printf("%s#", args[i]);
@@ -109,11 +108,11 @@ int main(){
 
             // Quitte la boucle si le user ecrit exit 
             if(strcmp(args[0], "exit") == 0){
-                last_status = execute_commande_quelconque(args, last_status, command);
+                last_status = execute_commande_quelconque(args, last_status, command, 0);
                 return last_status;
             }
             else{
-                last_status = execute_commande_quelconque(args, last_status, command);
+                last_status = execute_commande_quelconque(args, last_status, command, 0);
             }
             free(command); 
             for (int i = 0; args[i] != NULL; i++) {
