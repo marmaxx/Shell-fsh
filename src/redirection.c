@@ -68,7 +68,6 @@ int is_redirection(const char *cmd){
 int make_redirection(char* cmd, int last_status){
     int i;
     char **dec = decoupe(cmd);
-    int fd;
     int result = 0;
 
     /* Cherche la position de la redirection dans le tableau */ 
@@ -95,7 +94,7 @@ int make_redirection(char* cmd, int last_status){
         //printf("bien rentré dans la boucle de < \n");
 
         /* Ouverture du fichier qu'on va rediriger en entree */
-        fd = open(dec[i+1], O_RDONLY); 
+        int fd = open(dec[i+1], O_RDONLY); 
         if (fd < 0){
             perror("erreur open"); 
             return 1;
@@ -137,49 +136,60 @@ int make_redirection(char* cmd, int last_status){
         return 0;
     }
 
+    /* Gestion de la redirection de sortie standard */
+    else if (strcmp(dec[i], ">") == 0 || strcmp(dec[i], ">>") == 0 ) {
 
-    /* Redirection de la sortie standard sur le fichier */
-    if(strcmp(dec[i], ">") == 0){
-        
-        /* Ouverture du fichier implique dans la redirection */
-        int fd = open(dec[i+1], O_CREAT | O_WRONLY | O_EXCL, 0600);
-        if (fd < 1 ){
-            perror("fichier deja existant");
-            return 1;
-        }
-
-        /* Copie de la sortie standard */
+        /* Copie de la sortie standart */
         int stdout_backup = dup(STDOUT_FILENO);
-        if(stdout_backup < 0){
-            perror("erreur de sauvegarde stdout"); 
-            close(fd); 
+        if (stdout_backup < 0) {
+            perror("Erreur lors de la sauvegarde de stdout");
             return 1;
         }
 
-        /* Maj du tableau */
+        /* Initialisation des flags */
+        int flags = 0; 
+        if (strcmp(dec[i], ">>") == 0){
+            flags = (O_APPEND | O_CREAT | O_WRONLY);
+        } else {
+            flags = ( O_CREAT | O_WRONLY | O_EXCL);
+        }
+
+        /* Initialisation du descripteur */
+        int fd = open(dec[i + 1], flags, 0600);
+        if (fd < 0) {
+            perror("Erreur lors de l'ouverture du fichier pour la redirection de sortie");
+            close(stdout_backup);
+            return 1;
+        }
+
+        /* Rediraction de la sortie standart sur le fichier */
+        if (dup2(fd, STDOUT_FILENO) < 0) {
+            perror("Erreur lors de dup2 pour redirection de sortie");
+            close(fd);
+            close(stdout_backup);
+            return 1;
+        }
+        close(fd);
+
+        /* Clean du tableau de commande */
         dec[i] = NULL;
-        dec[i+1] = NULL;
-
-        /* Redirige la sortie standard sur le fichier */
-        if(dup2(fd, STDOUT_FILENO) < 0){
-            perror("erreur dup2 pour >");
-            close(fd); 
-            return 1;
-        }
+        dec[i + 1] = NULL;
 
         /* Execution de la commande */
-        if (execute_commande_quelconque(dec,last_status,dec[0]) == 1){
-            perror("probleme lors de l'execution de la commande dont la sortie doit etre redirige"); 
-            close(fd); 
-            return 1 ;
-        } 
+        result = execute_commande_quelconque(dec, last_status, dec[0]);
+        if (result != 0) {
+            perror("Erreur lors de l'execution de la commande avec redirection de sortie");
+        }
 
-        /* Clean des decripteurs */
-        dup2(stdout_backup, STDOUT_FILENO);
+        /* Restauration de la sortie standard */
+        if (dup2(stdout_backup, STDOUT_FILENO) < 0) {
+            perror("Erreur lors de la restauration de stdout");
+            close(stdout_backup);
+            return 1;
+        }
         close(stdout_backup);
-        close(fd); 
-        return 0;
     }
+    
 
 
     /* Clean de toutes les allocution de memoire */ 
@@ -187,6 +197,5 @@ int make_redirection(char* cmd, int last_status){
         free(dec[i]);
     }
     free(dec);
-
     return result;
 }
