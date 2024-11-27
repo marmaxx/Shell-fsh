@@ -15,23 +15,23 @@ int is_redirection(const char *cmd){
     if(cmd == NULL || strlen(cmd) < 4){
         return 1;
     }
-    //recuperation des premieres iteration des redirection
+    /* Recuperation des premieres iteration des redirection */ 
     const char *r_in = strchr(cmd, '<');
     //fprintf(stdout, " le r_in est %s \n",r_in);
     const char *r_out = strchr(cmd, '>');
     //fprintf(stdout, " le r_out est %s \n",r_out);
 
-    //check s'il y a au moin une redirection 
+    /* Check s'il y a au moin une redirection */ 
     if (r_in == NULL && r_out == NULL){
     return 1;
     }
 
-    //check s'il n'y a pas < et > en meme temps 
+    /* Check s'il n'y a pas < et > en meme temps */
     if (r_in != NULL && r_out != NULL){
     return 1;
     }
 
-    //check s'il y a bien une espace de chaque cote de < 
+    /* Check s'il y a bien une espace de chaque cote de < */ 
     if (r_in != NULL){
         if(*(r_in - 1) != ' ' && *(r_in + 1) != ' ')
         {
@@ -39,7 +39,7 @@ int is_redirection(const char *cmd){
         }
     }
 
-    // check les cas pour > 
+    /* Check les cas pour > */ 
     if ( r_out != NULL){
         // check juste avant > 
         if (r_out == cmd) {
@@ -53,7 +53,7 @@ int is_redirection(const char *cmd){
         }
 
 
-        // check juste apres >
+        /* Check juste apres > */
         if (*(r_out + 1) != ' ' && 
         !((*(r_out + 1) == '>') && (*(r_out + 2) == ' ')) && 
         !((*(r_out + 1) == '|' ) && (*(r_out + 2) == ' '))){
@@ -71,7 +71,7 @@ int make_redirection(char* cmd, int last_status){
     int fd;
     int result = 0;
 
-    //cherche la position de la redirection dans le tableau
+    /* Cherche la position de la redirection dans le tableau */ 
     for(i = 0; dec[i] != NULL ; i++){
         if ((strchr(dec[i], '>')) || (strchr(dec[i], '<'))){
             break;
@@ -82,10 +82,10 @@ int make_redirection(char* cmd, int last_status){
     //printf("le fichier text est : %s\n", dec[i+1]);
 
 
-    // redirection de l'entrée standard sur un fichier
+    /* Redirection de l'entrée standard sur un fichier */
     if(strcmp(dec[i], "<") == 0){
 
-        //sauvegarde l'entrée standar 
+        /* Sauvegarde l'entrée standar */
         int stdin_backup = dup(STDIN_FILENO);
         if (stdin_backup < 0){
             perror("erreur lors dup pour le back up"); 
@@ -94,7 +94,7 @@ int make_redirection(char* cmd, int last_status){
 
         //printf("bien rentré dans la boucle de < \n");
 
-        //on ouvre le fichier present dans la case i+1
+        /* Ouverture du fichier qu'on va rediriger en entree */
         fd = open(dec[i+1], O_RDONLY); 
         if (fd < 0){
             perror("erreur open"); 
@@ -107,30 +107,82 @@ int make_redirection(char* cmd, int last_status){
             close(fd); 
             return 1;
         }
-
         close(fd);
-        dec[i] = NULL;
+
+        /* Mise a jour du tableau pour supprimer la redirection de la commande */
+        dec[i] = NULL; 
         dec[i+1] = NULL;
         
         //printf("la case i du tab est : %s\n", dec[i]);
         //printf("le fichier text est : %s\n", dec[i+1]);
 
-        result = execute_commande_quelconque(dec,last_status,dec[0]);
+        /* Execution de la commande */
+        if (execute_commande_quelconque(dec,last_status,dec[0]) == 1){
+            perror("probleme lors de l'execution de la commande pendant la redirection < "); 
+            close(stdin_backup);
+            return 1; 
+        }
         
         //printf("la val de retour de exec coms qq est : %d", result); 
 
 
-        // Restauration de l'entree standar
+        /* Restauration de l'entree standar */ 
         if(dup2(stdin_backup,STDIN_FILENO) < 0){
             perror("erreur lors de la restaurtion de stdin");
             close(stdin_backup);
             return 1;
         }
         close(stdin_backup);
+
+        return 0;
     }
 
 
-    // clean de toutes les allocution de memoire
+    /* Redirection de la sortie standard sur le fichier */
+    if(strcmp(dec[i], ">") == 0){
+        
+        /* Ouverture du fichier implique dans la redirection */
+        int fd = open(dec[i+1], O_CREAT | O_WRONLY | O_EXCL, 0600);
+        if (fd < 1 ){
+            perror("fichier deja existant");
+            return 1;
+        }
+
+        /* Copie de la sortie standard */
+        int stdout_backup = dup(STDOUT_FILENO);
+        if(stdout_backup < 0){
+            perror("erreur de sauvegarde stdout"); 
+            close(fd); 
+            return 1;
+        }
+
+        /* Maj du tableau */
+        dec[i] = NULL;
+        dec[i+1] = NULL;
+
+        /* Redirige la sortie standard sur le fichier */
+        if(dup2(fd, STDOUT_FILENO) < 0){
+            perror("erreur dup2 pour >");
+            close(fd); 
+            return 1;
+        }
+
+        /* Execution de la commande */
+        if (execute_commande_quelconque(dec,last_status,dec[0]) == 1){
+            perror("probleme lors de l'execution de la commande dont la sortie doit etre redirige"); 
+            close(fd); 
+            return 1 ;
+        } 
+
+        /* Clean des decripteurs */
+        dup2(stdout_backup, STDOUT_FILENO);
+        close(stdout_backup);
+        close(fd); 
+        return 0;
+    }
+
+
+    /* Clean de toutes les allocution de memoire */ 
     for (int i = 0; dec[i] != NULL; i++) {
         free(dec[i]);
     }
