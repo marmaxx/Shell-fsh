@@ -39,7 +39,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
 
     // Gère le cas de la commande for
     else if (strcmp(args[0], "for") == 0){
-        last_status = boucle_for_simple(args[3], args[4], last_status);
+        last_status = boucle_for_simple(args, last_status);
     }
 
     else if (strcmp(args[0], "cd") == 0){
@@ -97,13 +97,13 @@ int main(){
             // decoupe la commande
             char **args = decoupe(command);
 
-            printf("Affichage dans fsh: \n");
+            /*printf("Affichage dans fsh: \n");
             
             for (int i = 0; args[i] != NULL; i++) {
                 printf("%s#", args[i]);
             }
             //printf("args[0] = %s et args[1] = %s\n", args[0], args[1]);
-            printf("\n");
+            printf("\n");*/
 
             // Quitte la boucle si le user ecrit exit 
             if(strcmp(args[0], "exit") == 0){
@@ -114,10 +114,10 @@ int main(){
                 last_status = execute_commande_quelconque(args, last_status, command);
             }
             free(command); 
-            for (int i = 0; args[i] != NULL; i++) {
+            /*for (int i = 0; args[i] != NULL; i++) {
                 free(args[i]);
             }
-            free(args);
+            free(args);*/
         }
     }
     

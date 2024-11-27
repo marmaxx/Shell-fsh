@@ -81,8 +81,33 @@ int find_index_file(char **array, const char *target) {
     return -1; // Retourne -1 si non trouvé
 }
 
-int boucle_for_simple (const char * rep, char * cmd, int last_status){
-    char **args = decoupe(cmd);
+int boucle_for_simple (char ** args, int last_status, char * cmd){
+    //char **args = decoupe(cmd);
+    printf("Affichage dans for: \n");
+            
+    for (int i = 0; args[i] != NULL; i++) {
+        printf("%s#", args[i]);
+    }
+    printf("\n");
+
+    char *rep = args[3]; // on récupère le nom du répertoire 
+    
+    int current = 4;
+
+    if (strcmp(args[current], "{") != 0){
+        perror("il manque l'accolade entrante du for");
+        return -1;
+    }
+
+    current++; // on saute l'accolade
+
+    char **commande = malloc(MAX_COM * sizeof(char));
+    int tmp = current;
+    for (int i = tmp; strcmp(args[i], "}") != 0; i++){
+        commande[i-tmp] = args[i];
+        current++;
+    }
+
     int result;
     struct dirent * entry;
     DIR * d = opendir(rep);
@@ -98,18 +123,17 @@ int boucle_for_simple (const char * rep, char * cmd, int last_status){
         int index;
         // On remplace le $F par le nom du fichier courant
         char **args_with_file = malloc(MAX_COM * sizeof(char *));
-        for (int i = 0; args[i] != NULL; i++) {
-            if (find_index_file(args, "$F") == i){
+        for (int i = 0; commande[i] != NULL; i++) {
+            if (find_index_file(commande, "$F") == i){
                 index = i;
             }
-            args_with_file[i] = replace_args(args[i], entry->d_name);
+            args_with_file[i] = replace_args(commande[i], entry->d_name);
         }
         args_with_file[MAX_COM - 1] = NULL; // Terminer le tableau par NULL
         
         args_with_file[index] = ajouter_rep(rep, args_with_file[index]);
         
-        /*printf("Affichage dans for: \n");
-        int taille = sizeof(args_with_file) / sizeof(args_with_file[0]);
+        /*printf("Affichage de args_with_file : \n");
         for (int i = 0; args_with_file[i] != NULL; i++) {
             printf("%s#", args_with_file[i]);
         }
@@ -117,6 +141,7 @@ int boucle_for_simple (const char * rep, char * cmd, int last_status){
 
         // Exécuter la commande avec les arguments modifiés
         result = execute_commande_quelconque(args_with_file, last_status, cmd);
+
         /*if (strcmp(args_with_file[0], "ftype") == 0){
             args_with_file[2] = NULL;
             ftype(args_with_file);
@@ -126,9 +151,9 @@ int boucle_for_simple (const char * rep, char * cmd, int last_status){
         }*/
 
         // Libérer la mémoire allouée pour args_with_file
-        /*for (int i = 0; args_with_file[i] != NULL; i++) {
+        for (int i = 0; args_with_file[i] != NULL; i++) {
             free(args_with_file[i]);
-        }*/
+        }
         free(args_with_file);
     }
 
