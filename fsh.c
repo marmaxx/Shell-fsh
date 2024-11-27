@@ -19,7 +19,7 @@
 #include "../include/commande_structuree.h"
 #include "../include/if_else.h"
 
-int execute_commande_quelconque(char **args, int last_status, char *command, int bool){
+int execute_commande_quelconque(char **args, int last_status, char *command){
     // Quitte la boucle si le user ecrit exit 
     if(strcmp(args[0], "exit") == 0){
         char *exit_arg; // initialisation de la val d'exit
@@ -34,19 +34,19 @@ int execute_commande_quelconque(char **args, int last_status, char *command, int
     // Gère le cas de la commande pwwd
     else if (strcmp(args[0], "pwd") == 0){
         last_status = 0;
-        if (bool == 0) printf("%s\n", chemin_absolu());
+        printf("%s\n", chemin_absolu());
     }
 
     // Gère le cas de la commande for
     else if (strcmp(args[0], "for") == 0){
-        last_status = boucle_for_simple(args[3], args[4], last_status, bool);
+        last_status = boucle_for_simple(args[3], args[4], last_status);
     }
 
     else if (strcmp(args[0], "cd") == 0){
         last_status = cd(args);
     }
     else if (strcmp(args[0], "ftype") == 0){
-        last_status = ftype(args, bool);
+        last_status = ftype(args);
     }
     else if(strcmp(args[0], "if") == 0){
         last_status = executer_commande_if_else(args, last_status);
@@ -99,7 +99,6 @@ int main(){
 
             printf("Affichage dans fsh: \n");
             
-            int taille = sizeof(args) / sizeof(args[0]);
             for (int i = 0; args[i] != NULL; i++) {
                 printf("%s#", args[i]);
             }
@@ -108,11 +107,11 @@ int main(){
 
             // Quitte la boucle si le user ecrit exit 
             if(strcmp(args[0], "exit") == 0){
-                last_status = execute_commande_quelconque(args, last_status, command, 0);
+                last_status = execute_commande_quelconque(args, last_status, command);
                 return last_status;
             }
             else{
-                last_status = execute_commande_quelconque(args, last_status, command, 0);
+                last_status = execute_commande_quelconque(args, last_status, command);
             }
             free(command); 
             for (int i = 0; args[i] != NULL; i++) {
