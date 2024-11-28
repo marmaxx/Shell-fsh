@@ -68,8 +68,9 @@ char **decoupe_commande_structuree(const char *command) {
     return sub_commands;
 }
 
-int execute_structured_command(const char *command, int last_status){
-    int result;
+int *execute_structured_command(const char *command, int last_status){
+    int *result = malloc (2 * sizeof(int));
+    result[0] = 0;
     char **commande_decoupee = decoupe_commande_structuree(command);
 
     for (int i = 0; commande_decoupee[i] != NULL; i++) {
@@ -82,12 +83,17 @@ int execute_structured_command(const char *command, int last_status){
 
         char ** new_args = decoupe(args);
 
-        if (strlen(new_args) > 0) {
-            //printf("Exécution de la sous-commande : %s\n", args);
-            printf("args = #%s#\n", args);
-            result = execute_commande_quelconque(new_args, last_status, args);
-            //printf("%d\n", result);
+        //printf("Exécution de la sous-commande : %s\n", args);
+        //printf("args = #%s#\n", args);
+        if (strcmp(new_args[0], "exit") == 0){
+            result[0] = 1;
+            result[1]= execute_commande_quelconque(new_args, last_status, args);
+            return result;
         }
+        else{
+            result[1] = execute_commande_quelconque(new_args, last_status, args);
+        }
+        //printf("%d\n", result);
     }
     return result;
 }
