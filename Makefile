@@ -3,24 +3,27 @@ CC = gcc
 CFLAGS = -Wall -Iinclude
 TARGET = fsh
 
+# Répertoire des sources et objets
+SRC_DIR = src
+BUILD_DIR = build
+
 # Liste des fichiers sources
-SRCS = fsh.c $(wildcard src/*.c)
-OBJS = $(SRCS:.c=.o)
+SRCS = bin/fsh.c $(wildcard $(SRC_DIR)/*.c)
+OBJS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRCS))
 
 all: $(TARGET)
 
+# Création de l'exécutable
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) -lreadline
 
-# Règle de compilation pour les fichiers .o dans src/ et pour fsh.c à la racine
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-src/%.o: src/%.c
+# Compilation des fichiers .c en .o dans le répertoire build/
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)  # Création du dossier build si nécessaire
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f src/*.o *.o $(TARGET)
+	rm -rf $(BUILD_DIR) $(TARGET)
 
 run:
-	./fsh
+	./$(TARGET)
