@@ -189,7 +189,58 @@ int make_redirection(char* cmd, int last_status){
             close(stdout_backup);
             return 1;
         }
+
         close(stdout_backup);
+
+    } else if (strcmp(dec[i], "2>") == 0 || strcmp(dec[i], "2>|") == 0 || strcmp(dec[i], "2>>") == 0){
+        int stderr_backup = dup(STDERR_FILENO);
+        if(stderr_backup < 0){
+            perror("erreur lors du dup de la sortie datndard");
+            return 1;
+        }
+
+        /* Initialisation des flags */
+        int flags; 
+        if (strcmp(dec[i],"2>>") == 0){
+            flags = (O_RDWR | O_CREAT | O_APPEND) ;
+        } else if (strcmp(dec[i], "2>|") == 0){
+            flags = (O_RDWR | O_TRUNC | O_CREAT);
+        } else {
+            flags = (O_RDWR | O_CREAT | O_EXCL);
+        }
+
+        /* Initialisation du descripteur */
+        int fd = open(dec[i+1],flags,0600);
+        if (fd < 0){
+            perror("Erreur lors de la creation du decripteur pour 2> ...");
+            close(stderr_backup); 
+            return 1;
+        }
+
+        /* Redirection de la sortie erreur standard */
+        if(dup2(fd,STDERR_FILENO) < 0){
+            perror("Erreur lors du dup2 de la sortie erreur sur le decripteur");
+            close(stderr_backup); 
+            close(fd);
+            return 1;
+        }
+        close(fd);
+
+        /* Clean du tableau de commande */
+        dec[i] = NULL; 
+        dec[i+1] = NULL;    
+
+        /* Execution de la commande */
+        result = execute_commande_quelconque(dec, last_status, dec[0]);
+
+        /* Restauration de la sortie erreur standard */
+        if(dup2(stderr_backup, STDERR_FILENO) < 0 ){
+            perror("Erreur lors de la restauration de la sortie erreur standard");
+            close(stderr_backup);
+            return 1;
+        }
+
+        close(stderr_backup);
     }
     
 
