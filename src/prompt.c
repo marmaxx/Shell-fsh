@@ -23,7 +23,7 @@ void create_prompt(int last_status, char *prompt, size_t size) {
     const char *dir_color = (last_status == 0) ? BLUE : CYAN;
 
     // Format de retour de la commande en focntion du dernier statut
-    char status[8];
+    char status[12];
     snprintf(status, sizeof(status), "%d", last_status);
 
     // On tronque le chemin 
@@ -31,7 +31,7 @@ void create_prompt(int last_status, char *prompt, size_t size) {
     char truncated_cwd[PATH_MAX];
 
     if (strlen(cwd) > max_dir_length) {
-        snprintf(truncated_cwd, sizeof(truncated_cwd), "...%s", cwd + strlen(cwd) - max_dir_length + 3);
+        snprintf(truncated_cwd, sizeof(truncated_cwd), "...%s", cwd + strlen(cwd) - max_dir_length + strlen(status) + 2);
     } else {
         snprintf(truncated_cwd, sizeof(truncated_cwd), "%s", cwd);
     }

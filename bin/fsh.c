@@ -23,18 +23,33 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
     // Quitte la boucle si le user ecrit exit 
     if(strcmp(args[0], "exit") == 0){
         char *exit_arg; // initialisation de la val d'exit
-        if(args[1] != NULL) {
-            exit_arg = args[1];
-        } else {
+        if (args[1] ==  NULL){
             exit_arg = NULL;
         }
+        else{
+            if (args[2] != NULL){
+                fprintf(stderr, "exit: too many arguments\n");
+                last_status = -3;
+                exit_arg = NULL;
+            }
+            else{
+                exit_arg = args[1];
+            }
+        } 
         //printf("val de retour après exit : %d \n", func_exit(exit_arg,last_status));
         last_status = func_exit(exit_arg,last_status); // exit 
     }
     // Gère le cas de la commande pwwd
     else if (strcmp(args[0], "pwd") == 0){
-        last_status = 0;
-        printf("%s\n", chemin_absolu());
+        // Vérifie si trop d'arguments sont fournis
+        if (args[1] != NULL) {
+            fprintf(stderr, "pwd: extra: invalid argument\n");
+            last_status = 1;
+        }
+        else{
+            last_status = 0;
+            printf("%s\n", chemin_absolu());
+        }
     }
 
     // Gère le cas de la commande for
@@ -110,9 +125,12 @@ int main(){
             // Quitte la boucle si le user ecrit exit 
             if(strcmp(args[0], "exit") == 0){
                 last_status = execute_commande_quelconque(args, last_status, command);
-                free(command);
-                free(args);
-                return last_status;
+                if (last_status != -3){
+                    free(command);
+                    free(args);
+                    return last_status;
+                }
+                last_status = 1;
             }
             else{
                 last_status = execute_commande_quelconque(args, last_status, command);

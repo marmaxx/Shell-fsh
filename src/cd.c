@@ -38,7 +38,7 @@ int cd(char ** args) {
 
         // Vérifie si trop d'arguments sont fournis
         if (args[2] != NULL) {
-            fprintf(stderr, "cd : trop d'arguments\n");
+            fprintf(stderr, "cd: too many arguments\n");
             return 1;
         }
 
