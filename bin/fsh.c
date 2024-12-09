@@ -57,7 +57,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
 
     /* Gère le cas de la commande for */ 
     else if (strcmp(args[0], "for") == 0){
-        last_status = boucle_for_simple(args, last_status);
+        last_status = boucle_for_simple(args, last_status, command);
     }
 
     else if (strcmp(args[0], "cd") == 0){
@@ -81,7 +81,11 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
     return last_status;
 }
 
-int main(){
+int main(int argc, char *argv[]){
+    printf("argc : %i\n", argc);
+    for (int i = 0; i < argc; i++){
+        printf("argv %i : %s\n", i, argv[i]);
+    }
     char *command; 
     int last_status = 0;
     rl_outstream = stderr;
