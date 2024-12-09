@@ -105,13 +105,14 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
         for (int i = 0; i < size; i++) {
             args_with_file[i] = replace_args(rep, commande[i], entry->d_name);
         }
-        args_with_file[MAX_COM - 1] = NULL; // Terminer le tableau par NULL
+        //fprintf(stderr, "size: %i", size);
+        args_with_file[size] = NULL; // Terminer le tableau par NULL
                 
-        /*printf("Affichage de args_with_file : \n");
-        for (int i = 0; args_with_file[i] != NULL; i++) {
-            printf("%s#", args_with_file[i]);
+        /*fprintf(stderr, "Affichage de args_with_file : \n");
+        for (int i = 0; i < size; i++) {
+            fprintf(stderr, "%s#", args_with_file[i]);
         }
-        printf("\n");*/
+        fprintf(stderr, "\n");*/
 
         // Exécuter la commande avec les arguments modifiés
         result = execute_commande_quelconque(args_with_file, last_status, cmd);
