@@ -59,6 +59,58 @@ char *replace_args(const char *rep, const char *arg, const char *file_name) {
 }
 
 int boucle_for_simple (char ** args, int last_status, char * cmd){
+    int current = 4;
+    int option_A = 0;
+    int option_r = 0;
+    char *ext = NULL;
+    char *type = NULL;
+    for (int i = 0; args[i] != NULL; i++){
+        if (strcmp(args[i], "-A") == 0){
+            option_A = 1;
+            current++;
+        }
+        else if (strcmp(args[i], "-r") == 0){
+            option_r = 1;
+            current++;
+        }
+        else if (strcmp(args[i], "-e") == 0){
+            if (args[i+1] != NULL){
+                ext = args[i+1];
+                current += 2;
+            }
+            else{
+                perror("il manque un argument à -e");
+                return 1;
+            }
+        }
+        else if (strcmp(args[i], "-t") == 0){
+            if (args[i+1] != NULL){
+                type = args[i+1];
+                current += 2;
+            }
+            else{
+                perror("il manque un argument à -t");
+                return 1;
+            }
+        }
+    }
+    
+    // Afficher les options activées
+    if (option_A) {
+        printf("Option -A activée.\n");
+    }
+
+    if (option_r) {
+        printf("Option -r activée.\n");
+    }
+
+    if (ext != NULL) {
+        printf("Option -e avec extension : %s\n", ext);
+    }
+
+    if (type != NULL) {
+        printf("Option -t avec type : %s\n", type);
+    }
     //char **args = decoupe(cmd);
     /*printf("Affichage dans for: \n");
             
@@ -68,8 +120,6 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
     printf("\n");*/
 
     char *rep = args[3]; // on récupère le nom du répertoire 
-    
-    int current = 4;
 
     if (strcmp(args[current], "{") != 0){
         perror("il manque l'accolade entrante du for");
@@ -128,8 +178,8 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
         // Libérer la mémoire allouée pour args_with_file
         /*for (int i = 0; args_with_file[i] != NULL; i++) {
             free(args_with_file[i]);
-        }*/
-        free(args_with_file);
+        }
+        free(args_with_file);*/
     }
 
     free(commande);
