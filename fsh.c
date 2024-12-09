@@ -69,8 +69,8 @@ int main(){
         /* Création du prompt */ 
         char prompt[PATH_MAX + 50];
         create_prompt(last_status, prompt, sizeof(prompt));
-        fprintf(stdout, "%s", prompt);
-        fflush(stdout);
+        fprintf(stderr, "%s", prompt);
+        fflush(stderr);
 
         /* Lit la commande du user */ 
         command = readline("");
