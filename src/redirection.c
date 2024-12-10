@@ -227,6 +227,9 @@ int make_redirection(char* cmd, int last_status){
         close(fd);
 
         /* Clean du tableau de commande */
+        fprintf(stdout, " case i - 1 : %s \n", dec[i - 1]); 
+        fprintf(stdout, " case i : %s \n", dec[i]); 
+        fprintf(stdout, " case i+1 : %s \n", dec[i + 1]); 
         dec[i] = NULL; 
         dec[i+1] = NULL;    
 
@@ -246,8 +249,10 @@ int make_redirection(char* cmd, int last_status){
 
 
     /* Clean de toutes les allocution de memoire */ 
-    for (int i = 0; dec[i] != NULL; i++) {
-        free(dec[i]);
+    for (int j = 0; dec[j] != NULL; j++) {
+        if (dec[j] != NULL){
+            free(dec[j]);
+        }
     }
     free(dec);
     return result;

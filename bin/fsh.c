@@ -49,7 +49,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
         }
         else{
             last_status = 0;
-            printf("%s\n", chemin_absolu());
+            fprintf(stdout, "%s\n", chemin_absolu());
         }
     }
 
@@ -66,8 +66,10 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
         last_status = ftype(args);
     }
     else if(strcmp(args[0], "if") == 0){
-        if (test(args[1])) last_status = commande_externe(args[2]);
+        /*if (test(args[1])) last_status = commande_externe(args[2]);
         else if (args[4] != NULL) last_status = commande_externe(args[4]);
+        */
+       last_status = executer_commande_if_else(args, last_status);
     }
     else{
         //printf("%s : commande invalide ou pas encore implémentée !\n", command);
@@ -99,7 +101,7 @@ int main(){
 
         /* Libere la memoire et passe a la prochaine iteration de la boucle */
         if (strlen(command) == 0) {
-            free(command);  
+            free(command); 
             continue; 
         }
 
@@ -112,13 +114,12 @@ int main(){
         if (is_redirection(command) == 0){
             //printf("on a bien une redirection\n");
             last_status = make_redirection(command,last_status);
-            free(command);
         }
 
-        /* Execution d'une commande structure */  
+        /* Execution d'une commande structure */
         else if (is_structured(command)){
             //printf("c'est structuré ! \n");
-            last_status = execute_structured_command(command, last_status);
+            last_status = *execute_structured_command(command, last_status);
         }
 
         else{
@@ -148,11 +149,11 @@ int main(){
                 last_status = execute_commande_quelconque(args, last_status, command);
             }
 
-            /* clean la memeoire */
-            free(command); 
+            /* clean la memeoire */ 
             /*for (int i = 0; args[i] != NULL; i++) {
                 free(args[i]);
             }*/
+            free(command);
             free(args);
         }
     }
