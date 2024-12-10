@@ -8,6 +8,7 @@
 #include "../include/externe.h"
 #include "../include/decoupeCmd.h"
 #include "../include/fsh.h"
+#include "../include/pipe.h"
 
 
 char **args = NULL;
