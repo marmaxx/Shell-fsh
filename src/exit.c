@@ -7,7 +7,7 @@
 
 int func_exit(char *arg, int last_status){
     if (arg == NULL){ // vérifie si il y a une val après le exit
-        printf("Exit %d OK (val retour de la dernière commande)\n", last_status);
+        //printf("Exit %d OK (val retour de la dernière commande)\n", last_status);
         return last_status; // exit avec la dernière val de retour
     } else {
         //convertion du char en long
