@@ -39,6 +39,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
         } 
         //printf("val de retour après exit : %d \n", func_exit(exit_arg,last_status));
         last_status = func_exit(exit_arg,last_status); // exit 
+        exit(last_status);
     }
     /* Gère le cas de la commande pwwd */
     else if (strcmp(args[0], "pwd") == 0){
