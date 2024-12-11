@@ -127,7 +127,9 @@ int main(){
 
         /* Execution d'une commande avec pipes*/
         else if (is_Pipe_Command(command)){
-            if (decoupe_pipe_commande(command)) last_status = execute_pipe(command, last_status);
+            if (decoupe_pipe_commande(command)){
+            last_status = execute_pipe(command, last_status);
+            }
             else{
                 last_status = 1;
                 return last_status;
