@@ -32,6 +32,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
                 fprintf(stderr, "exit: too many arguments\n");
                 last_status = -3;
                 exit_arg = NULL;
+                return last_status;
             }
             else{
                 exit_arg = args[1];
