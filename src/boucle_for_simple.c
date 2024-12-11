@@ -26,7 +26,7 @@ char *replace_args(const char *rep, const char *arg, const char *file_name, char
     int count = 0;
     int placeholder_len = strlen(placeholder);
     int file_name_len = strlen(file_name);
-    int rep_len = strlen(rep);
+    int rep_len = (rep != NULL) ? strlen(rep) : 0;
 
     // Compter le nombre d'occurrences de "$F" dans arg
     for (const char *tmp = arg; (tmp = strstr(tmp, placeholder)); ++tmp) {
@@ -48,12 +48,14 @@ char *replace_args(const char *rep, const char *arg, const char *file_name, char
         // Copier la partie avant "$F"
         strncpy(insert_point, arg, len_before_placeholder);
         insert_point += len_before_placeholder;
-        // Copier rep avant file_name
-        strcpy(insert_point, rep);
-        insert_point += rep_len;
-        // Copier le "/"
-        strcpy(insert_point, "/");
-        insert_point += 1;
+        if (rep != NULL){
+            // Copier rep avant file_name
+            strcpy(insert_point, rep);
+            insert_point += rep_len;
+            // Copier le "/"
+            strcpy(insert_point, "/");
+            insert_point += 1;
+        }
         // Copier file_name à la place de "$F"
         strcpy(insert_point, file_name);
         insert_point += file_name_len;
@@ -94,7 +96,7 @@ int matches_type(struct dirent *entry, char *type) {
     }
 }
 
-int boucle_for_simple (char ** args, int last_status, char * cmd){
+int boucle_for_simple (char ** args, int last_status){
     int current = 4;
     char *ext = NULL;
     char *type = NULL;
@@ -144,7 +146,7 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
     }
     
     // Afficher les options activées
-    if (option_A) {
+    /*if (option_A) {
         printf("Option -A activée.\n");
     }
 
@@ -158,7 +160,8 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
 
     if (type != NULL) {
         printf("Option -t avec type : %s\n", type);
-    }
+    }*/
+
     //char **args = decoupe(cmd);
     /*printf("Affichage dans for: \n");
             
@@ -226,30 +229,29 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
         }
 
         // Si -r est activé, vérifier si le fichier est un répertoire
-        /*if (option_r == 1 && entry->d_type == DT_DIR){
-            fprintf(stderr, "ancien rep: %s\n", rep);
+        if (option_r == 1 && entry->d_type == DT_DIR){
+            //fprintf(stderr, "ancien rep: %s\n", rep);
             char * new_rep = malloc(strlen(rep) + entry->d_reclen + 1);
             strcat(new_rep, rep);
             strcat(new_rep, "/");
             strcat(new_rep, entry->d_name);
-            fprintf(stderr, "nouveau rep : %s\n", new_rep);
+            //fprintf(stderr, "nouveau rep : %s\n", new_rep);
             char **args_with_rep = malloc(MAX_COM * sizeof(char *));
-            for (int i = 0; i < size; i++) {
-                args_with_rep[i] = replace_args("", args[i], new_rep, rep);
+            for (int i = 0; args[i] !=NULL; i++) {
+                args_with_rep[i] = replace_args(NULL, args[i], new_rep, rep);
             }
             //fprintf(stderr, "size: %i", size);
-            args_with_rep[size] = NULL; // Terminer le tableau par NULL
-            fprintf(stderr, "Affichage de args_with_rep : \n");
-            for (int i = 0; i < size; i++) {
+            //args_with_rep[size] = NULL; // Terminer le tableau par NULL
+            /*fprintf(stderr, "Affichage de args_with_rep : \n");
+            for (int i = 0; args[i] != NULL; i++) {
                 fprintf(stderr, "%s#", args_with_rep[i]);
             }
-            fprintf(stderr, "\n");
-            exit(1);
-            boucle_for_simple(args, last_status, cmd);
-        }**/
+            fprintf(stderr, "\n");*/
+            last_status = boucle_for_simple(args_with_rep, last_status);
+        }
 
         // Exécuter la commande avec les arguments modifiés
-        result = execute_commande_quelconque(args_with_file, last_status, cmd);
+        result = execute_commande_quelconque(args_with_file, last_status);
 
         // Libérer la mémoire allouée pour args_with_file
         /*for (int i = 0; args_with_file[i] != NULL; i++) {
