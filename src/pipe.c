@@ -93,3 +93,8 @@ int decoupe_pipe_commande (char *command){ //méthode vérifiant que la commande
     return 1;
     
 }
+
+
+int execute_pipe (char *command, int last_status){
+    if (!isPipeCommand || !decoupe_pipe_commande(command)) return 1;
+}
