@@ -248,12 +248,12 @@ int make_redirection(char* cmd, int last_status){
     
 
 
-    /* Clean de toutes les allocution de memoire */ 
+    /* Clean de toutes les allocution de memoire 
     for (int j = 0; dec[j] != NULL; j++) {
         if (dec[j] != NULL){
             free(dec[j]);
         }
-    }
+    }*/
     free(dec);
     return result;
 }
