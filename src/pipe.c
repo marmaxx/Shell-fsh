@@ -15,7 +15,7 @@ char **args = NULL;
 int args_count = 0;
 
 int is_Pipe_Command(char *command) {
-    // Vérification de la présence du caractère '|', pas de '||' ni '|' au début ou à la fin
+// Vérification de la présence du caractère '|', pas de '||' ni '|' au début ou à la fin
     if (strchr(command, '|') == NULL) {
         //write(STDERR_FILENO, "Erreur de syntaxe : aucun '|' trouvé\n", 37);
         return 0;
@@ -60,6 +60,8 @@ int decoupe_pipe_commande(char *command) {
     char *token = strtok(command, "|");
 
     while (token != NULL) {
+        printf("Token: '%s'\n", token);  // Debug : Affiche chaque token découpé
+
         // Suppression des espaces en début et fin de chaque sous-commande
         while (isspace((unsigned char)*token)) token++;
         char *end = token + strlen(token) - 1;
@@ -74,7 +76,7 @@ int decoupe_pipe_commande(char *command) {
             return 0;
         }
 
-        // Ajout de la sous-commande à args
+        // Ajouter la sous-commande à args
         char **new_args = realloc(args, (args_count + 1) * sizeof(char *));
         if (new_args == NULL) {
             perror("realloc : erreur");
@@ -116,9 +118,9 @@ int decoupe_pipe_commande(char *command) {
 int execute_pipe(char *command, int last_status) {
     int result = last_status;
 
-    // Créer un tableau de pipes (un pipe pour chaque paire de commandes)
     int pipe_fd[args_count - 1][2]; // Nombre de pipes = nombre de commandes - 1
 
+    // Crée les pipes nécessaires pour chaque commande
     for (int i = 0; i < args_count - 1; i++) {
         if (pipe(pipe_fd[i]) == -1) {
             perror("pipe");
@@ -130,6 +132,9 @@ int execute_pipe(char *command, int last_status) {
         pid_t pid = fork();
 
         if (pid == 0) { // Processus enfant
+            // Vérification des arguments avant exécution
+            printf("Exécution de la commande: %s\n", args[i]);  // Debug : Affiche la commande
+
             // Redirection d'entrée : si ce n'est pas le premier processus, lire depuis le pipe précédent
             if (i > 0) {
                 if (dup2(pipe_fd[i - 1][0], STDIN_FILENO) == -1) {
@@ -146,13 +151,13 @@ int execute_pipe(char *command, int last_status) {
                 }
             }
 
-            // Fermeture de tous les descripteurs de pipe dans le processus enfant 
+            // Fermer tous les descripteurs de pipe dans le processus enfant
             for (int j = 0; j < args_count - 1; j++) {
                 close(pipe_fd[j][0]);
                 close(pipe_fd[j][1]);
             }
 
-            // Vérification de redirection (si présente dans la commande) et exécution de la commande
+            // Exécution de la commande
             if (is_redirection(args[i])) {
                 result = make_redirection(args[i], last_status);
             } else {
@@ -160,22 +165,22 @@ int execute_pipe(char *command, int last_status) {
                 result = execute_commande_quelconque(args_i, last_status, command);
             }
 
-            exit(result); 
+            exit(result); // N'oubliez pas de sortir du processus enfant après exécution
         }
     }
 
-    // Fermeture de tous les descripteurs de pipe dans le parent
+    // Fermeture des pipes dans le parent
     for (int i = 0; i < args_count - 1; i++) {
         close(pipe_fd[i][0]);
         close(pipe_fd[i][1]);
     }
 
-    // Attendre tous les processus enfants
+    // Attendre les processus enfants
     for (int i = 0; i < args_count; i++) {
         wait(NULL);
     }
 
-    // Libération de la mémoire utilisée pour les arguments
+    // Libérer la mémoire utilisée pour les arguments
     free(args);
     args = NULL;
     args_count = 0;
