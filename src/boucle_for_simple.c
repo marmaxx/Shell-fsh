@@ -82,6 +82,17 @@ int has_extension(const char *filename, const char *ext) {
     return strcmp(dot, ext) == 0;
 }
 
+// Fonction pour vérifier le type de fichier
+int matches_type(struct dirent *entry, char *type) {
+    char t = *type;
+    switch (t) {
+        case 'f': return entry->d_type == DT_REG; // Fichier ordinaire
+        case 'd': return entry->d_type == DT_DIR; // Répertoire
+        case 'l': return entry->d_type == DT_LNK; // Lien symbolique
+        case 'p': return entry->d_type == DT_FIFO; // Tube
+        default: return 0;
+    }
+}
 
 int boucle_for_simple (char ** args, int last_status, char * cmd){
     int current = 4;
@@ -184,8 +195,6 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
     }
 
     while ((entry = readdir(d)) != NULL){
-        // On ne prend pas en compte les fichiers cachés
-        if (option_A == 0 && entry->d_name[0] == '.') continue;
         //int index;
         // On remplace le $F par le nom du fichier courant
         char **args_with_file = malloc(MAX_COM * sizeof(char *));
@@ -200,7 +209,24 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
             fprintf(stderr, "%s#", args_with_file[i]);
         }
         fprintf(stderr, "\n");*/
-        if (option_r == 1 && entry->d_type == DT_DIR){
+
+         // Si -A n'est pas activé, ignorer les fichiers cachés
+        if (!option_A && entry->d_name[0] == '.') {
+            continue;
+        }
+
+        // Si -e est activé, vérifier l'extension
+        if (option_e && !has_extension(entry->d_name, ext)) {
+            continue;
+        }
+
+        // Si -t est activé, vérifier le type de fichier
+        if (option_t && !matches_type(entry, type)) {
+            continue;
+        }
+
+        // Si -r est activé, vérifier si le fichier est un répertoire
+        /*if (option_r == 1 && entry->d_type == DT_DIR){
             fprintf(stderr, "ancien rep: %s\n", rep);
             char * new_rep = malloc(strlen(rep) + entry->d_reclen + 1);
             strcat(new_rep, rep);
@@ -220,68 +246,10 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
             fprintf(stderr, "\n");
             exit(1);
             boucle_for_simple(args, last_status, cmd);
-        }
+        }**/
 
-        if (option_e == 1){
-            if (has_extension(entry->d_name, ext) == 1){
-                result = execute_commande_quelconque(args_with_file, last_status, cmd);
-            }
-            else{
-                continue;
-            }
-        }
-
-        if (option_t == 1){
-            if (strcmp(type, "f") == 0){
-                if (entry->d_type == DT_REG){
-                    result = execute_commande_quelconque(args_with_file, last_status, cmd);
-                }
-                else{
-                    continue;
-                }
-            }
-            else if (strcmp(type, "d") == 0){
-                if(entry->d_type == DT_DIR){
-                    result = execute_commande_quelconque(args_with_file, last_status, cmd);
-                }
-                else{
-                    continue;
-                }
-            }
-            else if (strcmp(type, "l") == 0){
-                if (entry->d_type == DT_LNK){
-                    result = execute_commande_quelconque(args_with_file, last_status, cmd);
-                }
-                else{
-                    continue;
-                }
-            }
-            else if (strcmp(type, "p") == 0){
-                if (entry->d_type == DT_FIFO){
-                    result = execute_commande_quelconque(args_with_file, last_status, cmd);
-                }
-                else{
-                    continue;
-                }
-            }
-            else{
-                perror("mauvais argument pour le -t");
-                exit(1);
-            }
-        }
-        if (has_option() == 0){
-            printf("ICI\n");
-            // Exécuter la commande avec les arguments modifiés
-            result = execute_commande_quelconque(args_with_file, last_status, cmd);
-        }
-
-        /*if (strcmp(args_with_file[0], "ftype") == 0){
-            args_with_file[2] = NULL;
-            ftype(args_with_file);
-        }
-        else{
-            commande_externe(args_with_file);
-        }*/
+        // Exécuter la commande avec les arguments modifiés
+        result = execute_commande_quelconque(args_with_file, last_status, cmd);
 
         // Libérer la mémoire allouée pour args_with_file
         /*for (int i = 0; args_with_file[i] != NULL; i++) {
