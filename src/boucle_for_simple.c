@@ -4,6 +4,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <limits.h>
+#include <sys/stat.h>
 
 #include "../include/externe.h"
 #include "../include/decoupeCmd.h"
@@ -12,8 +13,14 @@
 
 #define MAX_COM 128 
 
-char *replace_args(const char *rep, const char *arg, const char *file_name) {
-    const char *placeholder = "$F";
+int option_A = 0;
+int option_r = 0;
+int option_e = 0;
+int option_t = 0;
+int option_p = 0;
+
+char *replace_args(const char *rep, const char *arg, const char *file_name, char * pl) {
+    const char *placeholder = pl;
     char *result;
     char *insert_point;
     int count = 0;
@@ -58,12 +65,29 @@ char *replace_args(const char *rep, const char *arg, const char *file_name) {
     return result;
 }
 
+int has_option(){
+    return option_A || option_e || option_r || option_t || option_p;
+}
+
+int has_extension(const char *filename, const char *ext) {
+    // Trouve le dernier point dans le nom de fichier
+    const char *dot = strrchr(filename, '.');
+    
+    // Vérifie que le point existe et que ce n'est pas le dernier caractère
+    if (!dot || dot == filename) {
+        return 0;
+    }
+
+    // Compare l'extension avec celle recherchée
+    return strcmp(dot, ext) == 0;
+}
+
+
 int boucle_for_simple (char ** args, int last_status, char * cmd){
     int current = 4;
-    int option_A = 0;
-    int option_r = 0;
     char *ext = NULL;
     char *type = NULL;
+    char *max = NULL;
     for (int i = 0; args[i] != NULL; i++){
         if (strcmp(args[i], "-A") == 0){
             option_A = 1;
@@ -75,6 +99,7 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
         }
         else if (strcmp(args[i], "-e") == 0){
             if (args[i+1] != NULL){
+                option_e = 1;
                 ext = args[i+1];
                 current += 2;
             }
@@ -85,11 +110,23 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
         }
         else if (strcmp(args[i], "-t") == 0){
             if (args[i+1] != NULL){
+                option_t = 1;
                 type = args[i+1];
                 current += 2;
             }
             else{
                 perror("il manque un argument à -t");
+                return 1;
+            }
+        }
+        else if (strcmp(args[i], "-p") == 0){
+            if (args[i+1] != NULL){
+                option_p = 1;
+                max = args[i+1];
+                current += 2;
+            }
+            else{
+                perror("il manque un argument à -p");
                 return 1;
             }
         }
@@ -137,7 +174,7 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
         size++;
     }
 
-    int result;
+    int result = 0;
     struct dirent * entry;
     DIR * d = opendir(rep);
 
@@ -148,12 +185,12 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
 
     while ((entry = readdir(d)) != NULL){
         // On ne prend pas en compte les fichiers cachés
-        if (entry->d_name[0] == '.') continue;
+        if (option_A == 0 && entry->d_name[0] == '.') continue;
         //int index;
         // On remplace le $F par le nom du fichier courant
         char **args_with_file = malloc(MAX_COM * sizeof(char *));
         for (int i = 0; i < size; i++) {
-            args_with_file[i] = replace_args(rep, commande[i], entry->d_name);
+            args_with_file[i] = replace_args(rep, commande[i], entry->d_name, "$F");
         }
         //fprintf(stderr, "size: %i", size);
         args_with_file[size] = NULL; // Terminer le tableau par NULL
@@ -163,9 +200,80 @@ int boucle_for_simple (char ** args, int last_status, char * cmd){
             fprintf(stderr, "%s#", args_with_file[i]);
         }
         fprintf(stderr, "\n");*/
+        if (option_r == 1 && entry->d_type == DT_DIR){
+            fprintf(stderr, "ancien rep: %s\n", rep);
+            char * new_rep = malloc(strlen(rep) + entry->d_reclen + 1);
+            strcat(new_rep, rep);
+            strcat(new_rep, "/");
+            strcat(new_rep, entry->d_name);
+            fprintf(stderr, "nouveau rep : %s\n", new_rep);
+            char **args_with_rep = malloc(MAX_COM * sizeof(char *));
+            for (int i = 0; i < size; i++) {
+                args_with_rep[i] = replace_args("", args[i], new_rep, rep);
+            }
+            //fprintf(stderr, "size: %i", size);
+            args_with_rep[size] = NULL; // Terminer le tableau par NULL
+            fprintf(stderr, "Affichage de args_with_rep : \n");
+            for (int i = 0; i < size; i++) {
+                fprintf(stderr, "%s#", args_with_rep[i]);
+            }
+            fprintf(stderr, "\n");
+            exit(1);
+            boucle_for_simple(args, last_status, cmd);
+        }
 
-        // Exécuter la commande avec les arguments modifiés
-        result = execute_commande_quelconque(args_with_file, last_status, cmd);
+        if (option_e == 1){
+            if (has_extension(entry->d_name, ext) == 1){
+                result = execute_commande_quelconque(args_with_file, last_status, cmd);
+            }
+            else{
+                continue;
+            }
+        }
+
+        if (option_t == 1){
+            if (strcmp(type, "f") == 0){
+                if (entry->d_type == DT_REG){
+                    result = execute_commande_quelconque(args_with_file, last_status, cmd);
+                }
+                else{
+                    continue;
+                }
+            }
+            else if (strcmp(type, "d") == 0){
+                if(entry->d_type == DT_DIR){
+                    result = execute_commande_quelconque(args_with_file, last_status, cmd);
+                }
+                else{
+                    continue;
+                }
+            }
+            else if (strcmp(type, "l") == 0){
+                if (entry->d_type == DT_LNK){
+                    result = execute_commande_quelconque(args_with_file, last_status, cmd);
+                }
+                else{
+                    continue;
+                }
+            }
+            else if (strcmp(type, "p") == 0){
+                if (entry->d_type == DT_FIFO){
+                    result = execute_commande_quelconque(args_with_file, last_status, cmd);
+                }
+                else{
+                    continue;
+                }
+            }
+            else{
+                perror("mauvais argument pour le -t");
+                exit(1);
+            }
+        }
+        if (has_option() == 0){
+            printf("ICI\n");
+            // Exécuter la commande avec les arguments modifiés
+            result = execute_commande_quelconque(args_with_file, last_status, cmd);
+        }
 
         /*if (strcmp(args_with_file[0], "ftype") == 0){
             args_with_file[2] = NULL;
