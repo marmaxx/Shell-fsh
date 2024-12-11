@@ -9,36 +9,37 @@
 #include "../include/decoupeCmd.h"
 #include "../include/fsh.h"
 #include "../include/pipe.h"
+#include "../include/redirection.h"
 
 
 char **args = NULL;
 int args_count = 0;
 
-int isPipeCommand (char *command){ //méthode vérifiant qu'il y ait le caractère '|' dans la commande, mais pas "||" ou '|' en début ou fin
+int is_Pipe_Command (char *command){ //méthode vérifiant qu'il y ait le caractère '|' dans la commande, mais pas "||" ou '|' en début ou fin
     if (strchr(command, '|')==NULL) {
-        write (stderr, "Erreur de syntaxe\n", 18);
+        write (STDERR_FILENO, "Erreur de syntaxe\n", 18);
         return 0;
     }
 
     else if (command[0] == '|' || command[strlen(command)-1]=='|') {
-        write (stderr, "Erreur de syntaxe\n", 18);
+        write (STDERR_FILENO, "Erreur de syntaxe\n", 18);
         return 0;
     }
 
     else if (strstr(command, "||")!=NULL) {
-        write (stderr, "Erreur de syntaxe\n", 18);
+        write (STDERR_FILENO, "Erreur de syntaxe\n", 18);
         return 0;
     }
     return 1;
 }
 
 int decoupe_pipe_commande (char *command){ //méthode vérifiant que la commande est bien valable et la découpe en sous commandes 
-    if (!isPipeCommand) return 0;
+    if (!is_Pipe_Command(command)) return 0;
 
-    char *token = strtok(command, '|');
+    char *token = strtok(command, "|");
     while (token != NULL){
         if (token[0]!=' ' || token[strlen(token)-1]!=' '){
-            write (stderr, "Erreur de syntaxe\n", 18);
+            write (STDERR_FILENO, "Erreur de syntaxe\n", 18);
             return 0;
         }
         while (isspace((unsigned char)*token)) token ++;
@@ -49,7 +50,7 @@ int decoupe_pipe_commande (char *command){ //méthode vérifiant que la commande
         }
 
         if (strlen(token) == 0) {
-            write(stderr, "Erreur de syntaxe\n", 18);
+            write(STDERR_FILENO, "Erreur de syntaxe\n", 18);
             free(args);
             return 0;
         }
@@ -96,5 +97,50 @@ int decoupe_pipe_commande (char *command){ //méthode vérifiant que la commande
 
 
 int execute_pipe (char *command, int last_status){
-    if (!isPipeCommand || !decoupe_pipe_commande(command)) return 1;
+    int result = last_status;
+    
+    int pipe_fd[args_count][2];
+
+    for (int i = 0; i<args_count; i++){
+        pipe(pipe_fd[i]);
+    }
+
+    for (int i = 0; i<args_count; i++){
+
+        pid_t pid = fork();
+
+        if (pid == 0){
+            
+            if (i>0) dup2(pipe_fd[i-1][0], STDIN_FILENO);
+            if  (i<args_count) dup2(pipe_fd[i+1][1], STDOUT_FILENO);
+            
+            for (int j = 0; j<args_count-1; j++){
+                close (pipe_fd[j][0]);
+                close (pipe_fd[j][1]);
+            }
+        }
+
+        if (is_redirection(args[i])) result = make_redirection(args[i], last_status);
+
+        else {
+            char **args_i = decoupe(args[i]);
+            result = execute_commande_quelconque(args_i, last_status, command);
+        }
+        
+    }
+
+    for (int j = 0; j<args_count-1; j++){
+        close (pipe_fd[j][0]);
+        close (pipe_fd[j][1]);
+    }
+
+    for (int i = 0; i<args_count-1; i++){
+        wait (NULL);
+    }
+
+    free (args);
+    args=NULL;
+    args_count = 0;
+
+    return result;
 }

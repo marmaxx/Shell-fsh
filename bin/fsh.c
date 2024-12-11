@@ -19,6 +19,7 @@
 #include "../include/commande_structuree.h"
 #include "../include/if_else.h"
 #include "../include/redirection.h"
+#include "../include/pipe.h"
 
 int execute_commande_quelconque(char **args, int last_status, char *command){
     /* Quitte la boucle si le user ecrit exit */ 
@@ -122,6 +123,15 @@ int main(){
         else if (is_structured(command)){
             //printf("c'est structuré ! \n");
             last_status = *execute_structured_command(command, last_status);
+        }
+
+        /* Execution d'une commande avec pipes*/
+        else if (is_Pipe_Command(command)){
+            if (decoupe_pipe_commande(command)) last_status = execute_pipe(command, last_status);
+            else{
+                last_status = 1;
+                return last_status;
+            }
         }
 
         else{
