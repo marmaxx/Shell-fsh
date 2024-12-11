@@ -19,7 +19,7 @@
 #include "../include/commande_structuree.h"
 #include "../include/if_else.h"
 
-int execute_commande_quelconque(char **args, int last_status, char *command){
+int execute_commande_quelconque(char **args, int last_status){
     // Quitte la boucle si le user ecrit exit 
     if(strcmp(args[0], "exit") == 0){
         char *exit_arg; // initialisation de la val d'exit
@@ -54,7 +54,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
 
     // Gère le cas de la commande for
     else if (strcmp(args[0], "for") == 0){
-        last_status = boucle_for_simple(args, last_status, command);
+        last_status = boucle_for_simple(args, last_status);
     }
 
     else if (strcmp(args[0], "cd") == 0){
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]){
 
             // Quitte la boucle si le user ecrit exit 
             if(strcmp(args[0], "exit") == 0){
-                last_status = execute_commande_quelconque(args, last_status, command);
+                last_status = execute_commande_quelconque(args, last_status);
                 if (last_status != -3){
                     free(command);
                     free(args);
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]){
                 last_status = 1;
             }
             else{
-                last_status = execute_commande_quelconque(args, last_status, command);
+                last_status = execute_commande_quelconque(args, last_status);
             }
             free(command); 
             /*for (int i = 0; args[i] != NULL; i++) {
