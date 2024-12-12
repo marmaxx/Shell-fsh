@@ -61,15 +61,16 @@ int is_redirection(const char *cmd){
 }
 
 int make_redirection(char* cmd, int last_status){
-    int i;
     int nb_red = 0;
     int *tab = malloc(10 * sizeof(int)); //position de chaque signe de redirection
     char **dec = decoupe(cmd);
     int result = 0;
 
     /* Cherche la position des redirections dans le tableau */ 
-    for(i = 0; dec[i] != NULL ; i++){
+    for(int i = 0; dec[i] != NULL ; i++){
         if ((strchr(dec[i], '>')) || (strchr(dec[i], '<'))){
+            //printf(" nb_red = %i \n", nb_red);
+            //printf(" i 1  = %i \n", i);
             tab[nb_red] = i;
             nb_red++; 
         }
@@ -78,8 +79,8 @@ int make_redirection(char* cmd, int last_status){
    
 
     //printf(" nb_red = %i \n", nb_red);
-    //printf("la case i du tab est : %s\n", dec[i]);
-    //printf("le fichier text est : %s\n", dec[i+1]);
+    //printf("la case i du tab est : %s\n", dec[tab[0]]);
+    //printf("le fichier text est : %s\n", dec[tab[0]+1]);
 
     /* Sauvegarde l'entrée standar */
     int stdin_backup = dup(STDIN_FILENO);
@@ -102,14 +103,15 @@ int make_redirection(char* cmd, int last_status){
         return 1;
     }
 
+int n = 0; // Index de la redirection
 while(nb_red > 0){
     /* Redirection de l'entrée standard sur un fichier */
 
-    if(strcmp(dec[tab[nb_red-1]], "<") == 0){
+    if(strcmp(dec[tab[n]], "<") == 0){
         //printf("bien rentré dans la boucle de < \n");
 
         /* Ouverture du fichier qu'on va rediriger en entree */
-        int fd = open(dec[tab[nb_red-1]+1], O_RDONLY); 
+        int fd = open(dec[tab[n]+1], O_RDONLY); 
         if (fd < 0){
             perror("erreur open"); 
             return 1;
@@ -124,22 +126,22 @@ while(nb_red > 0){
         close(fd);
     }
     /* Gestion de la redirection de sortie standard */
-    else if (strcmp(dec[tab[nb_red-1]], ">") == 0 
-    || strcmp(dec[tab[nb_red-1]], ">>") == 0 
-    || strcmp(dec[tab[nb_red-1]], ">|") == 0) {
+    else if (strcmp(dec[tab[n]], ">") == 0 
+    || strcmp(dec[tab[n]], ">>") == 0 
+    || strcmp(dec[tab[n]], ">|") == 0) {
 
         /* Initialisation des flags */
         int flags = 0; 
-        if (strcmp(dec[tab[nb_red-1]], ">>") == 0){
+        if (strcmp(dec[tab[n]], ">>") == 0){
             flags = (O_APPEND | O_CREAT | O_WRONLY);
-        } else if (strcmp(dec[tab[nb_red-1]], ">|") == 0){
+        } else if (strcmp(dec[tab[n]], ">|") == 0){
             flags = (O_CREAT | O_WRONLY | O_TRUNC);
         } else {
             flags = ( O_CREAT | O_WRONLY | O_EXCL);
         }
 
         /* Initialisation du descripteur */
-        int fd = open(dec[tab[nb_red-1] + 1], flags, 0600);
+        int fd = open(dec[tab[n] + 1], flags, 0600);
         if (fd < 0) {
             perror("Erreur lors de l'ouverture du fichier pour la redirection de sortie");
             close(stdout_backup);
@@ -155,22 +157,22 @@ while(nb_red > 0){
         }
         close(fd);
 
-    } else if (strcmp(dec[tab[nb_red-1]], "2>") == 0 
-    || strcmp(dec[tab[nb_red-1]], "2>|") == 0 
-    || strcmp(dec[tab[nb_red-1]], "2>>") == 0){
+    } else if (strcmp(dec[tab[n]], "2>") == 0 
+    || strcmp(dec[tab[n]], "2>|") == 0 
+    || strcmp(dec[tab[n]], "2>>") == 0){
 
         /* Initialisation des flags */
         int flags; 
-        if (strcmp(dec[tab[nb_red-1]],"2>>") == 0){
+        if (strcmp(dec[tab[n]],"2>>") == 0){
             flags = (O_RDWR | O_CREAT | O_APPEND) ;
-        } else if (strcmp(dec[tab[nb_red-1]], "2>|") == 0){
+        } else if (strcmp(dec[tab[n]], "2>|") == 0){
             flags = (O_RDWR | O_TRUNC | O_CREAT);
         } else {
             flags = (O_RDWR | O_CREAT | O_EXCL);
         }
 
         /* Initialisation du descripteur */
-        int fd = open(dec[tab[nb_red-1]+1],flags,0600);
+        int fd = open(dec[tab[n]+1],flags,0600);
         if (fd < 0){
             perror("Erreur lors de la creation du decripteur pour 2> ...");
             close(stderr_backup); 
@@ -187,12 +189,13 @@ while(nb_red > 0){
         close(fd);
     }
 
-    nb_red = nb_red - 1 ; 
+    nb_red = nb_red - 1 ;
+    n = n + 1; 
 }
 
 
  /* Clean du tableau de commande */
-    for(int j = 1; dec[j] != NULL ; j++){
+    for(int j = tab[0]; dec[j] != NULL ; j++){
         dec[j] = NULL;
     }
 
