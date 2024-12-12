@@ -22,19 +22,24 @@ int ftype (char ** args){
             return 1;
         }
         if (S_ISREG(buf.st_mode)) {
-        printf("regular file\n");
+            printf("regular file\n");
+            fflush(stdout);
         } 
         else if (S_ISDIR(buf.st_mode)) {
             printf("directory\n");
+            fflush(stdout);
         } 
         else if (S_ISLNK(buf.st_mode)) {
             printf("symbolic link\n");
+            fflush(stdout);
         }  
         else if (S_ISFIFO(buf.st_mode)) {
             printf("named pipe\n");
+            fflush(stdout);
         }
         else {
             printf("other\n");
+            fflush(stdout);
         }
         return 0;
     }

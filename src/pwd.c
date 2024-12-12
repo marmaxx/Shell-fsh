@@ -134,3 +134,10 @@ char *chemin_absolu() {
     
     return chemin_complet;
 }
+
+void pwd_command() {
+    char *cwd = chemin_absolu();
+    printf("%s\n", cwd); 
+    fflush(stdout);
+    free(cwd);
+} 

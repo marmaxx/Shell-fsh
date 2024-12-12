@@ -51,7 +51,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
         }
         else{
             last_status = 0;
-            fprintf(stdout, "%s\n", chemin_absolu());
+            pwd_command();
         }
     }
 
