@@ -13,12 +13,6 @@
 
 #define MAX_COM 128 
 
-int option_A = 0;
-int option_r = 0;
-int option_e = 0;
-int option_t = 0;
-int option_p = 0;
-
 char *replace_args(const char *rep, const char *arg, const char *file_name, char * pl) {
     const char *placeholder = pl;
     char *result;
@@ -67,18 +61,16 @@ char *replace_args(const char *rep, const char *arg, const char *file_name, char
     return result;
 }
 
-int has_option(){
-    return option_A || option_e || option_r || option_t || option_p;
-}
-
 int has_extension(const char *filename, const char *ext) {
+    //fprintf(stderr, "has extension\n");
     // Trouve le dernier point dans le nom de fichier
     const char *dot = strrchr(filename, '.');
-    
+    //fprintf(stderr, "ligne 78\n");
     // Vérifie que le point existe et que ce n'est pas le dernier caractère
     if (!dot || dot == filename) {
         return 0;
     }
+    //fprintf(stderr, "ligne 83\n");
 
     // Compare l'extension avec celle recherchée
     return strcmp(dot, ext) == 0;
@@ -97,10 +89,15 @@ int matches_type(struct dirent *entry, char *type) {
 }
 
 int boucle_for_simple (char ** args, int last_status){
+    int option_A = 0;
+    int option_r = 0;
+    int option_e = 0;
+    int option_t = 0;
+    //int option_p = 0;
     int current = 4;
-    char *ext = NULL;
-    char *type = NULL;
-    char *max = NULL;
+    char *ext = "";
+    char *type = "";
+    //char *max;
     for (int i = 0; args[i] != NULL; i++){
         if (strcmp(args[i], "-A") == 0){
             option_A = 1;
@@ -132,7 +129,7 @@ int boucle_for_simple (char ** args, int last_status){
                 return 1;
             }
         }
-        else if (strcmp(args[i], "-p") == 0){
+        /*else if (strcmp(args[i], "-p") == 0){
             if (args[i+1] != NULL){
                 option_p = 1;
                 max = args[i+1];
@@ -142,7 +139,7 @@ int boucle_for_simple (char ** args, int last_status){
                 perror("il manque un argument à -p");
                 return 1;
             }
-        }
+        }*/
     }
     
     // Afficher les options activées
@@ -200,13 +197,15 @@ int boucle_for_simple (char ** args, int last_status){
     while ((entry = readdir(d)) != NULL){
         //int index;
         // On remplace le $F par le nom du fichier courant
+        //fprintf(stderr, "proche du malloc de args_with_file\n");
         char **args_with_file = malloc(MAX_COM * sizeof(char *));
         for (int i = 0; i < size; i++) {
             args_with_file[i] = replace_args(rep, commande[i], entry->d_name, "$F");
         }
+
         //fprintf(stderr, "size: %i", size);
         args_with_file[size] = NULL; // Terminer le tableau par NULL
-                
+
         /*fprintf(stderr, "Affichage de args_with_file : \n");
         for (int i = 0; i < size; i++) {
             fprintf(stderr, "%s#", args_with_file[i]);
@@ -217,38 +216,47 @@ int boucle_for_simple (char ** args, int last_status){
         if (!option_A && entry->d_name[0] == '.') {
             continue;
         }
-
+        //fprintf(stderr, "ligne 222\n");
         // Si -e est activé, vérifier l'extension
         if (option_e && !has_extension(entry->d_name, ext)) {
             continue;
         }
+        //fprintf(stderr, "ligne 227\n");
 
         // Si -t est activé, vérifier le type de fichier
         if (option_t && !matches_type(entry, type)) {
             continue;
         }
 
+        //fprintf(stderr, "ligne 234\n");
+
         // Si -r est activé, vérifier si le fichier est un répertoire
         if (option_r == 1 && entry->d_type == DT_DIR){
             //fprintf(stderr, "ancien rep: %s\n", rep);
+            //fprintf(stderr, "proche du malloc new_rep\n");
             char * new_rep = malloc(strlen(rep) + entry->d_reclen + 1);
             strcat(new_rep, rep);
             strcat(new_rep, "/");
             strcat(new_rep, entry->d_name);
             //fprintf(stderr, "nouveau rep : %s\n", new_rep);
+            //fprintf(stderr, "proche du malloc de args_with_rep\n");
             char **args_with_rep = malloc(MAX_COM * sizeof(char *));
-            for (int i = 0; args[i] !=NULL; i++) {
+            int i;
+            for (i = 0; args[i] !=NULL; i++) {
                 args_with_rep[i] = replace_args(NULL, args[i], new_rep, rep);
             }
+            free(new_rep);
             //fprintf(stderr, "size: %i", size);
-            //args_with_rep[size] = NULL; // Terminer le tableau par NULL
+            args_with_rep[i] = NULL; // Terminer le tableau par NULL
             /*fprintf(stderr, "Affichage de args_with_rep : \n");
             for (int i = 0; args[i] != NULL; i++) {
                 fprintf(stderr, "%s#", args_with_rep[i]);
             }
             fprintf(stderr, "\n");*/
             last_status = boucle_for_simple(args_with_rep, last_status);
+            free(args_with_rep);
         }
+        //fprintf(stderr, "ligne 261\n");
 
         // Exécuter la commande avec les arguments modifiés
         result = execute_commande_quelconque(args_with_file, last_status);
@@ -256,8 +264,8 @@ int boucle_for_simple (char ** args, int last_status){
         // Libérer la mémoire allouée pour args_with_file
         /*for (int i = 0; args_with_file[i] != NULL; i++) {
             free(args_with_file[i]);
-        }
-        free(args_with_file);*/
+        }*/
+        free(args_with_file);
     }
 
     free(commande);
