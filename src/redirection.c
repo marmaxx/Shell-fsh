@@ -141,7 +141,7 @@ while(nb_red > 0){
         }
 
         /* Initialisation du descripteur */
-        int fd = open(dec[tab[n] + 1], flags, 0600);
+        int fd = open(dec[tab[n] + 1], flags, 0644);
         if (fd < 0) {
             perror("Erreur lors de l'ouverture du fichier pour la redirection de sortie");
             close(stdout_backup);
@@ -172,7 +172,7 @@ while(nb_red > 0){
         }
 
         /* Initialisation du descripteur */
-        int fd = open(dec[tab[n]+1],flags,0600);
+        int fd = open(dec[tab[n]+1],flags,0644);
         if (fd < 0){
             perror("Erreur lors de la creation du decripteur pour 2> ...");
             close(stderr_backup); 
