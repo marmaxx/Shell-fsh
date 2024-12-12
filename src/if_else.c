@@ -60,12 +60,12 @@ int executer_commande_if_else (char ** args, int last_status){
             if (strcmp(args[i+1], "}") == 0 && index_brace == 0) bool = 0;
         }
         //commande_if[size-1] = NULL;
-        printf("Affichage de commande_if : \n");
+        /*printf("Affichage de commande_if : \n");
             
         for (int i = 0; i < size; i++) {
             printf("%s#", commande_if[i]);
         }
-        printf("\n%d\n", current);
+        printf("\n%d\n", current);*/
 
         result = execute_commande_quelconque(commande_if, last_status, commande_if[0]);
         /*if (strcmp(args[current-1], "}") != 0){
@@ -122,14 +122,14 @@ int executer_commande_if_else (char ** args, int last_status){
             size++;
             if (strcmp(args[i+1], "}") == 0 && index_brace == 0) bool = 0;
         }
-        printf("size : %i\n", size);
+        //printf("size : %i\n", size);
 
-        printf("Affichage de commande_else : \n");
+        /*printf("Affichage de commande_else : \n");
             
         for (int i = 0; i < size; i++) {
             printf("%s#", commande_else[i]);
         }
-        printf("\n%d\n", current);
+        printf("\n%d\n", current);*/
         result = execute_commande_quelconque(commande_else, last_status, commande_else[0]);
     }
     else{
