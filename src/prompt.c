@@ -36,7 +36,7 @@ void create_prompt(int last_status, char *prompt, size_t size) {
         snprintf(truncated_cwd, sizeof(truncated_cwd), "%s", cwd);
     }
 
-    snprintf(prompt, size, "%s[%s]%s%s%s$ ", status_color, status, dir_color, truncated_cwd, RESET);
+    snprintf(prompt, size, "%s[%s]%s%s%s", status_color, status, dir_color, truncated_cwd, RESET);
 
     free(cwd);
 }

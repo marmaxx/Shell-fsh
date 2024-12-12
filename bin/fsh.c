@@ -91,8 +91,8 @@ int main(){
         fprintf(stderr, "%s", prompt);
         fflush(stderr);
 
-        /* Lit la commande du user */ 
-        command = readline("");
+        // Lit la commande du user 
+        command = readline("$ "); 
 
         if(command == NULL){
             //printf("on sort de la boucle while");
