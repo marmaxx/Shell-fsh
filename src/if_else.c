@@ -23,7 +23,7 @@ int executer_commande_if_else (char ** args, int last_status){
     printf("\n%d\n", current);*/
 
     int result = 0;
-    int execute_test = execute_commande_quelconque(test, last_status, args[1]);
+    int execute_test = execute_commande_quelconque(test, last_status);
 
     if (strcmp(args[current], "{") != 0){
         perror("il manque l'accolade entrante du if");
@@ -49,7 +49,7 @@ int executer_commande_if_else (char ** args, int last_status){
             printf("%s#", commande_if[i]);
         }
         printf("\n%d\n", current);*/
-        result = execute_commande_quelconque(commande_if, last_status, args[2]);
+        result = execute_commande_quelconque(commande_if, last_status);
 
         if (strcmp(args[current], "}") != 0){
             perror("il manque l'accolade sortante du if");
@@ -92,7 +92,7 @@ int executer_commande_if_else (char ** args, int last_status){
             printf("%s#", commande_else[i]);
         }
         printf("\n%d\n", current);
-        result = execute_commande_quelconque(commande_else, last_status, args[4]);
+        result = execute_commande_quelconque(commande_else, last_status);
     }
     else{
         result = 0;

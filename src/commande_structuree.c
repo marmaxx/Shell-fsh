@@ -87,11 +87,11 @@ int *execute_structured_command(const char *command, int last_status){
         //printf("args = #%s#\n", args);
         if (strcmp(new_args[0], "exit") == 0){
             result[0] = 1;
-            result[1]= execute_commande_quelconque(new_args, last_status, args);
+            result[1]= execute_commande_quelconque(new_args, last_status);
             return result;
         }
         else{
-            result[1] = execute_commande_quelconque(new_args, last_status, args);
+            result[1] = execute_commande_quelconque(new_args, last_status);
         }
         //printf("%d\n", result);
     }
