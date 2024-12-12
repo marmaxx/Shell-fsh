@@ -15,19 +15,19 @@ char **args = NULL;
 int args_count = 0;
 
 int is_Pipe_Command(char *command) {
-// Vérification de la présence du caractère '|', pas de '||' ni '|' au début ou à la fin
+//vérification de la présence du caractère '|', pas de '||' ni '|' au début ou à la fin
     if (strchr(command, '|') == NULL) {
         //write(STDERR_FILENO, "Erreur de syntaxe : aucun '|' trouvé\n", 37);
         return 0;
     }
 
     if (command[0] == '|' || command[strlen(command) - 1] == '|') {
-        write(STDERR_FILENO, "Erreur de syntaxe : pipe au début ou à la fin\n", 46);
+        fprintf(stderr, "Erreur de syntaxe : pipe au début ou à la fin\n");
         return 0;
     }
 
     if (strstr(command, "||") != NULL) {
-        write(STDERR_FILENO, "Erreur de syntaxe : '||' trouvé\n", 33);
+        fprintf(stderr, "Erreur de syntaxe : '||' trouvé\n");
         return 0;
     }
 
@@ -35,11 +35,11 @@ int is_Pipe_Command(char *command) {
 }
 
 int verify_spaces_around_pipes(char *command) {
-    // Vérification qu'il y a un espace avant et après chaque '|' (sauf en début et fin)
+    //vérification qu'il y ait un espace avant et après chaque '|' (sauf en début et fin)
     for (int i = 1; i < strlen(command) - 1; i++) {
         if (command[i] == '|') {
             if (command[i - 1] != ' ' || command[i + 1] != ' ') {
-                write(STDERR_FILENO, "Erreur de syntaxe : pas d'espace avant ou après '|' \n", 54);
+                fprintf(stderr, "Erreur de syntaxe : pas d'espace avant ou après '|' \n");
                 return 0;
             }
         }
@@ -49,7 +49,7 @@ int verify_spaces_around_pipes(char *command) {
 
 int decoupe_pipe_commande(char *command) {
     if (!is_Pipe_Command(command)) {
-        return 0;  // Commande invalide si ce n'est pas une commande avec des pipes
+        return 0;  //commande invalide si ce n'est pas une commande avec des pipes
     }
 
     // Vérifier qu'il y a un espace avant et après chaque pipe
@@ -60,23 +60,23 @@ int decoupe_pipe_commande(char *command) {
     char *token = strtok(command, "|");
 
     while (token != NULL) {
-        printf("Token: '%s'\n", token);  // Debug : Affiche chaque token découpé
+        //printf("Token: '%s'\n", token);  // Debug : Affiche chaque token découpé
 
-        // Suppression des espaces en début et fin de chaque sous-commande
+        //suppression des espaces en début et fin de chaque sous-commande
         while (isspace((unsigned char)*token)) token++;
         char *end = token + strlen(token) - 1;
         while (end > token && isspace((unsigned char)*end)) {
             *end-- = '\0';
         }
 
-        // Vérification si la sous-commande est vide après nettoyage
+        //on vérifie si la sous-commande est vide après nettoyage
         if (strlen(token) == 0) {
-            write(STDERR_FILENO, "Erreur de syntaxe : sous-commande vide\n", 39);
+            fprintf(stderr, "Erreur de syntaxe : sous-commande vide\n");
             free(args);
             return 0;
         }
 
-        // Ajouter la sous-commande à args
+        //ajout de la sous-commande à args
         char **new_args = realloc(args, (args_count + 1) * sizeof(char *));
         if (new_args == NULL) {
             perror("realloc : erreur");
@@ -85,7 +85,7 @@ int decoupe_pipe_commande(char *command) {
         }
         args = new_args;
 
-        args[args_count] = strdup(token); // Utilisation de strdup pour éviter de modifier la chaîne source
+        args[args_count] = strdup(token); //utilisation de strdup pour éviter de modifier la chaîne source
         if (args[args_count] == NULL) {
             perror("malloc : erreur");
             for (int i = 0; i < args_count; i++) {
@@ -99,7 +99,7 @@ int decoupe_pipe_commande(char *command) {
         token = strtok(NULL, "|");
     }
 
-    // Ajouter un pointeur NULL pour marquer la fin
+    //ajout d'un pointeur NULL pour marquer la fin
     char **final_args = realloc(args, (args_count + 1) * sizeof(char *));
     if (final_args == NULL) {
         perror("realloc : erreur");
@@ -118,69 +118,81 @@ int decoupe_pipe_commande(char *command) {
 int execute_pipe(char *command, int last_status) {
     int result = last_status;
 
-    int pipe_fd[args_count - 1][2]; // Nombre de pipes = nombre de commandes - 1
+    int pipe_fd[args_count - 1][2]; //nombre de pipes = nombre de commandes - 1
 
-    // Crée les pipes nécessaires pour chaque commande
+    //on crée les pipes nécessaires pour chaque commande
     for (int i = 0; i < args_count - 1; i++) {
         if (pipe(pipe_fd[i]) == -1) {
             perror("pipe");
-            return 0;
+            return 1;
         }
     }
 
     for (int i = 0; i < args_count; i++) {
         pid_t pid = fork();
 
-        if (pid == 0) { // Processus enfant
-            // Vérification des arguments avant exécution
-            printf("Exécution de la commande: %s\n", args[i]);  // Debug : Affiche la commande
+        if (pid == 0) { //processus enfant
+            //vérification des arguments avant exécution
+            //printf("Exécution de la commande: %s\n", args[i]); 
 
-            // Redirection d'entrée : si ce n'est pas le premier processus, lire depuis le pipe précédent
+            //redirection d'entrée : si ce n'est pas le premier processus, lire depuis le pipe précédent
             if (i > 0) {
                 if (dup2(pipe_fd[i - 1][0], STDIN_FILENO) == -1) {
                     perror("dup2 input");
-                    exit(1);
+                    result = 1;
+                    exit (1);
                 }
             }
 
-            // Redirection de sortie : si ce n'est pas le dernier processus, écrire dans le pipe suivant
+            //redirection de sortie : si ce n'est pas le dernier processus, on écrit dans le pipe suivant
             if (i < args_count - 1) {
                 if (dup2(pipe_fd[i][1], STDOUT_FILENO) == -1) {
                     perror("dup2 output");
-                    exit(1);
+                    result = 1;
+                    exit (1);
                 }
             }
 
-            // Fermer tous les descripteurs de pipe dans le processus enfant
-            for (int j = 0; j < args_count - 1; j++) {
+            //on ferme tous les descripteurs de pipe dans le processus enfant
+            for (int j = 0; j < args_count-1; j++) {
                 close(pipe_fd[j][0]);
                 close(pipe_fd[j][1]);
             }
 
-            // Exécution de la commande
-            if (is_redirection(args[i])) {
-                result = make_redirection(args[i], last_status);
-            } else {
+            //exécution de la commande
+            if (!is_redirection(args[i])) { //si c'est une redirection, on gère la redirection
+                //fprintf(stderr, "olala");
+                if (result = make_redirection(args[i], last_status)) _exit (result);
+                
+            } else { //sinon, on exécute la commande "quelconque"
+                //fprintf(stderr, "On execute la commande : %s\n", args[i]);
                 char **args_i = decoupe(args[i]);
-                result = execute_commande_quelconque(args_i, last_status, command);
+                if (result = execute_commande_quelconque(args_i, last_status, command)) _exit(result);
+                //printf("%i", result);
             }
+            return result;
 
-            exit(result); // N'oubliez pas de sortir du processus enfant après exécution
+        }
+        
+
+        else if (pid < 0){
+            perror ("fork");
+            return 1;
         }
     }
 
-    // Fermeture des pipes dans le parent
-    for (int i = 0; i < args_count - 1; i++) {
+    //fermeture des pipes dans le parent
+    for (int i = 0; i < args_count-1; i++) {
         close(pipe_fd[i][0]);
         close(pipe_fd[i][1]);
     }
 
-    // Attendre les processus enfants
+    //on attend les processus enfants
     for (int i = 0; i < args_count; i++) {
         wait(NULL);
     }
 
-    // Libérer la mémoire utilisée pour les arguments
+    //libération de la mémoire utilisée pour les arguments
     free(args);
     args = NULL;
     args_count = 0;

@@ -130,7 +130,7 @@ int main(){
             if (decoupe_pipe_commande(command)){
             last_status = execute_pipe(command, last_status);
             }
-            else{
+            else {
                 last_status = 1;
                 return last_status;
             }
@@ -171,6 +171,7 @@ int main(){
             free(args);
         }
     }
+    //fprintf(stderr, "%i", last_status);
     
     return last_status;
 }
