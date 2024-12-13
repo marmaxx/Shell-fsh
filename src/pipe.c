@@ -190,7 +190,7 @@ int execute_pipe(char *command, int last_status) {
         int status;
         pid_t pid = wait(&status);
         if (pid > 0 && i == args_count - 1) {
-            //on récupère la valeur de retour de l'enfant
+            //on récupère la valeur de retour de l'enfant pour la dernière commande
             if (WIFEXITED(status)) {
                 result = WEXITSTATUS(status); //on met à jour le résultat
                 //printf("%i\n", result);
@@ -206,5 +206,5 @@ int execute_pipe(char *command, int last_status) {
     args_count = 0;
 
     //printf("%i\n", result);
-    return result;
+    return result; //on renvoie le résultat de la dernière commande
 }
