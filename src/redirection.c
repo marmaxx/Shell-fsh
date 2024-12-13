@@ -26,11 +26,6 @@ int is_redirection(const char *cmd){
     return 1;
     }
 
-    /* Check s'il n'y a pas < et > en meme temps */
-    if (r_in != NULL && r_out != NULL){
-    return 1;
-    }
-
     /* Check s'il y a bien une espace de chaque cote de < */ 
     if (r_in != NULL){
         if(*(r_in - 1) != ' ' && *(r_in + 1) != ' ')
@@ -48,7 +43,7 @@ int is_redirection(const char *cmd){
         } else if (*(r_out - 1) != ' ') {
             // check si avant > n'est pas un espace
             if (!(*(r_out - 1) == '2' && (r_out - 2 >= cmd) && *(r_out - 2) == ' ')) {
-                return 1; //erreur si ce n'est pas 2> avrcc un espace avant le 2
+                return 1; //erreur si ce n'est pas 2> avec un espace avant le 2
             }
         }
 
@@ -66,35 +61,57 @@ int is_redirection(const char *cmd){
 }
 
 int make_redirection(char* cmd, int last_status){
-    int i;
+    int nb_red = 0;
+    int *tab = malloc(10 * sizeof(int)); //position de chaque signe de redirection
     char **dec = decoupe(cmd);
     int result = 0;
 
-    /* Cherche la position de la redirection dans le tableau */ 
-    for(i = 0; dec[i] != NULL ; i++){
+    /* Cherche la position des redirections dans le tableau */ 
+    for(int i = 0; dec[i] != NULL ; i++){
         if ((strchr(dec[i], '>')) || (strchr(dec[i], '<'))){
-            break;
+            //printf(" nb_red = %i \n", nb_red);
+            //printf(" i 1  = %i \n", i);
+            tab[nb_red] = i;
+            nb_red++; 
         }
     }
 
-    //printf("la case i du tab est : %s\n", dec[i]);
-    //printf("le fichier text est : %s\n", dec[i+1]);
+   
 
+    //printf(" nb_red = %i \n", nb_red);
+    //printf("la case i du tab est : %s\n", dec[tab[0]]);
+    //printf("le fichier text est : %s\n", dec[tab[0]+1]);
 
+    /* Sauvegarde l'entrée standar */
+    int stdin_backup = dup(STDIN_FILENO);
+    if (stdin_backup < 0){
+        perror("erreur lors dup pour le back up"); 
+        return 1;
+    }
+
+    /* Copie de la sortie standart */
+    int stdout_backup = dup(STDOUT_FILENO);
+    if (stdout_backup < 0) {
+        perror("Erreur lors de la sauvegarde de stdout");
+        return 1;
+    }
+
+    /* Copie de la sortie erreur */
+    int stderr_backup = dup(STDERR_FILENO);
+    if (stderr_backup < 0) {
+        perror("Erreur lors de la sauvegarde de stdout");
+        return 1;
+    }
+
+int n = 0; // Index de la redirection
+while(nb_red > 0){
     /* Redirection de l'entrée standard sur un fichier */
-    if(strcmp(dec[i], "<") == 0){
 
-        /* Sauvegarde l'entrée standar */
-        int stdin_backup = dup(STDIN_FILENO);
-        if (stdin_backup < 0){
-            perror("erreur lors dup pour le back up"); 
-            return 1;
-        }
-
+    if(strcmp(dec[tab[n]], "<") == 0){
         //printf("bien rentré dans la boucle de < \n");
 
         /* Ouverture du fichier qu'on va rediriger en entree */
-        int fd = open(dec[i+1], O_RDONLY); 
+        int fd = open(dec[tab[n]+1], O_RDONLY); 
         if (fd < 0){
             perror("erreur open"); 
             return 1;
@@ -107,57 +124,24 @@ int make_redirection(char* cmd, int last_status){
             return 1;
         }
         close(fd);
-
-        /* Mise a jour du tableau pour supprimer la redirection de la commande */
-        dec[i] = NULL; 
-        dec[i+1] = NULL;
-        
-        //printf("la case i du tab est : %s\n", dec[i]);
-        //printf("le fichier text est : %s\n", dec[i+1]);
-
-        /* Execution de la commande */
-        if (execute_commande_quelconque(dec,last_status,dec[0]) == 1){
-            perror("probleme lors de l'execution de la commande pendant la redirection < "); 
-            close(stdin_backup);
-            return 1; 
-        }
-        
-        //printf("la val de retour de exec coms qq est : %d", result); 
-
-
-        /* Restauration de l'entree standar */ 
-        if(dup2(stdin_backup,STDIN_FILENO) < 0){
-            perror("erreur lors de la restaurtion de stdin");
-            close(stdin_backup);
-            return 1;
-        }
-        close(stdin_backup);
-
-        return 0;
     }
-
     /* Gestion de la redirection de sortie standard */
-    else if (strcmp(dec[i], ">") == 0 || strcmp(dec[i], ">>") == 0 || strcmp(dec[i], ">|") == 0) {
-
-        /* Copie de la sortie standart */
-        int stdout_backup = dup(STDOUT_FILENO);
-        if (stdout_backup < 0) {
-            perror("Erreur lors de la sauvegarde de stdout");
-            return 1;
-        }
+    else if (strcmp(dec[tab[n]], ">") == 0 
+    || strcmp(dec[tab[n]], ">>") == 0 
+    || strcmp(dec[tab[n]], ">|") == 0) {
 
         /* Initialisation des flags */
         int flags = 0; 
-        if (strcmp(dec[i], ">>") == 0){
+        if (strcmp(dec[tab[n]], ">>") == 0){
             flags = (O_APPEND | O_CREAT | O_WRONLY);
-        } else if (strcmp(dec[i], ">|") == 0){
+        } else if (strcmp(dec[tab[n]], ">|") == 0){
             flags = (O_CREAT | O_WRONLY | O_TRUNC);
         } else {
             flags = ( O_CREAT | O_WRONLY | O_EXCL);
         }
 
         /* Initialisation du descripteur */
-        int fd = open(dec[i + 1], flags, 0600);
+        int fd = open(dec[tab[n] + 1], flags, 0644);
         if (fd < 0) {
             perror("Erreur lors de l'ouverture du fichier pour la redirection de sortie");
             close(stdout_backup);
@@ -173,44 +157,22 @@ int make_redirection(char* cmd, int last_status){
         }
         close(fd);
 
-        /* Clean du tableau de commande */
-        dec[i] = NULL;
-        dec[i + 1] = NULL;
-
-        /* Execution de la commande */
-        result = execute_commande_quelconque(dec, last_status, dec[0]);
-        if (result != 0) {
-            perror("Erreur lors de l'execution de la commande avec redirection de sortie");
-        }
-
-        /* Restauration de la sortie standard */
-        if (dup2(stdout_backup, STDOUT_FILENO) < 0) {
-            perror("Erreur lors de la restauration de stdout");
-            close(stdout_backup);
-            return 1;
-        }
-
-        close(stdout_backup);
-
-    } else if (strcmp(dec[i], "2>") == 0 || strcmp(dec[i], "2>|") == 0 || strcmp(dec[i], "2>>") == 0){
-        int stderr_backup = dup(STDERR_FILENO);
-        if(stderr_backup < 0){
-            perror("erreur lors du dup de la sortie datndard");
-            return 1;
-        }
+    } else if (strcmp(dec[tab[n]], "2>") == 0 
+    || strcmp(dec[tab[n]], "2>|") == 0 
+    || strcmp(dec[tab[n]], "2>>") == 0){
 
         /* Initialisation des flags */
         int flags; 
-        if (strcmp(dec[i],"2>>") == 0){
+        if (strcmp(dec[tab[n]],"2>>") == 0){
             flags = (O_RDWR | O_CREAT | O_APPEND) ;
-        } else if (strcmp(dec[i], "2>|") == 0){
+        } else if (strcmp(dec[tab[n]], "2>|") == 0){
             flags = (O_RDWR | O_TRUNC | O_CREAT);
         } else {
             flags = (O_RDWR | O_CREAT | O_EXCL);
         }
 
         /* Initialisation du descripteur */
-        int fd = open(dec[i+1],flags,0600);
+        int fd = open(dec[tab[n]+1],flags,0644);
         if (fd < 0){
             perror("Erreur lors de la creation du decripteur pour 2> ...");
             close(stderr_backup); 
@@ -225,35 +187,57 @@ int make_redirection(char* cmd, int last_status){
             return 1;
         }
         close(fd);
-
-        /* Clean du tableau de commande */
-        fprintf(stdout, " case i - 1 : %s \n", dec[i - 1]); 
-        fprintf(stdout, " case i : %s \n", dec[i]); 
-        fprintf(stdout, " case i+1 : %s \n", dec[i + 1]); 
-        dec[i] = NULL; 
-        dec[i+1] = NULL;    
-
-        /* Execution de la commande */
-        result = execute_commande_quelconque(dec, last_status, dec[0]);
-
-        /* Restauration de la sortie erreur standard */
-        if(dup2(stderr_backup, STDERR_FILENO) < 0 ){
-            perror("Erreur lors de la restauration de la sortie erreur standard");
-            close(stderr_backup);
-            return 1;
-        }
-
-        close(stderr_backup);
     }
-    
+
+    nb_red = nb_red - 1 ;
+    n = n + 1; 
+}
 
 
-    /* Clean de toutes les allocution de memoire */ 
+ /* Clean du tableau de commande */
+    for(int j = tab[0]; dec[j] != NULL ; j++){
+        dec[j] = NULL;
+    }
+
+    /* Execution de la commande */
+    result = execute_commande_quelconque(dec, last_status, dec[0]);
+    if (result != 0) {
+        perror("Erreur lors de l'execution de la commande avec redirection de sortie");
+    }
+
+    /* Restauration de l'entree standard */
+    if(dup2(stdin_backup, STDIN_FILENO) < 0){
+        perror("Erreur lors de la restauration de stdin"); 
+        return 1;
+    }
+
+    /* Restauration de la sortie standard */
+    if (dup2(stdout_backup, STDOUT_FILENO) < 0) {
+        perror("Erreur lors de la restauration de stdout");
+        close(stdout_backup);
+        return 1;
+    }
+
+    /* Restauration de la sortie erreur */
+    if (dup2(stderr_backup, STDERR_FILENO) < 0) {
+        perror("Erreur lors de la restauration de stderr");
+        close(stderr_backup);
+        return 1;
+    }
+   
+
+    close(stderr_backup);
+    close(stdout_backup);  
+    close(stdin_backup);
+
+
+    /* Clean de toutes les allocution de memoire 
     for (int j = 0; dec[j] != NULL; j++) {
         if (dec[j] != NULL){
             free(dec[j]);
         }
-    }
+    }*/
     free(dec);
+    free(tab);
     return result;
 }

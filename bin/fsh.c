@@ -32,6 +32,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
                 fprintf(stderr, "exit: too many arguments\n");
                 last_status = -3;
                 exit_arg = NULL;
+                return last_status;
             }
             else{
                 exit_arg = args[1];
@@ -39,6 +40,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
         } 
         //printf("val de retour après exit : %d \n", func_exit(exit_arg,last_status));
         last_status = func_exit(exit_arg,last_status); // exit 
+        exit(last_status);
     }
     /* Gère le cas de la commande pwwd */
     else if (strcmp(args[0], "pwd") == 0){
@@ -49,7 +51,7 @@ int execute_commande_quelconque(char **args, int last_status, char *command){
         }
         else{
             last_status = 0;
-            fprintf(stdout, "%s\n", chemin_absolu());
+            pwd_command();
         }
     }
 
@@ -114,12 +116,14 @@ int main(){
         if (is_redirection(command) == 0){
             //printf("on a bien une redirection\n");
             last_status = make_redirection(command,last_status);
+            free(command);
         }
 
         /* Execution d'une commande structure */
         else if (is_structured(command)){
             //printf("c'est structuré ! \n");
             last_status = *execute_structured_command(command, last_status);
+            free(command);
         }
 
         else{

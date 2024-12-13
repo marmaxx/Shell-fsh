@@ -3,5 +3,6 @@
 
 char *nom_du_repertoire();
 char *chemin_absolu();
+void pwd_command();
 
 #endif
