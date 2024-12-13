@@ -238,5 +238,6 @@ while(nb_red > 0){
         }
     }*/
     free(dec);
+    free(tab);
     return result;
 }
