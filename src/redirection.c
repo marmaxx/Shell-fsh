@@ -200,7 +200,7 @@ while(nb_red > 0){
     }
 
     /* Execution de la commande */
-    result = execute_commande_quelconque(dec, last_status, dec[0]);
+    result = execute_commande_quelconque(dec, last_status);
     if (result != 0) {
         perror("Erreur lors de l'execution de la commande avec redirection de sortie");
     }

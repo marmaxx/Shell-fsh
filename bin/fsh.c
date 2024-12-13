@@ -82,10 +82,6 @@ int execute_commande_quelconque(char **args, int last_status){
 }
 
 int main(int argc, char *argv[]){
-    printf("argc : %i\n", argc);
-    for (int i = 0; i < argc; i++){
-        printf("argv %i : %s\n", i, argv[i]);
-    }
     char *command; 
     int last_status = 0;
     rl_outstream = stderr;

@@ -10,6 +10,7 @@
 #include "../include/decoupeCmd.h"
 #include "../include/ftype.h"
 #include "../include/fsh.h"
+#include "../include/commande_structuree.h"
 
 #define MAX_COM 128 
 
@@ -61,10 +62,11 @@ char *replace_args(const char *rep, const char *arg, const char *file_name, char
     return result;
 }
 
-int has_extension(const char *filename, const char *ext) {
+/*int has_extension(const char *filename, const char *ext) {
     // Trouve le dernier point dans le nom de fichier
-    const char *dot = strrchr(filename, '.');
-    
+    const char *dot = strrchr(filename, '.') + 1;
+    //dot++;
+
     // Vérifie que le point existe et que ce n'est pas le dernier caractère
     if (!dot || dot == filename) {
         return 0;
@@ -72,6 +74,23 @@ int has_extension(const char *filename, const char *ext) {
 
     // Compare l'extension avec celle recherchée
     return strcmp(dot, ext) == 0;
+}*/
+
+int has_extension(const char *filename, const char *ext) {
+    size_t filename_len = strlen(filename);
+    size_t ext_len = strlen(ext);
+
+    // La longueur totale de l'extension avec le point ajouté
+    size_t total_ext_len = ext_len + 1;
+
+    // Si l'extension avec le point est plus longue que le nom de fichier, retourner 0
+    if (total_ext_len > filename_len) {
+        return 0;
+    }
+
+    // Comparer la fin du nom de fichier avec le point et l'extension
+    return filename[filename_len - total_ext_len] == '.' &&
+           strncmp(filename + (filename_len - ext_len), ext, ext_len) == 0;
 }
 
 // Fonction pour vérifier le type de fichier
@@ -86,6 +105,16 @@ int matches_type(struct dirent *entry, char *type) {
     }
 }
 
+void concatenate_args(char *args[], char *result) {
+    result[0] = '\0';
+    for (int i = 0; args[i] != NULL; i++) {
+        strcat(result, args[i]);
+        if (args[i + 1] != NULL) {
+            strcat(result, " ");
+        }
+    }
+}
+
 int boucle_for_simple (char ** args, int last_status){
     int option_A = 0;
     int option_r = 0;
@@ -96,6 +125,7 @@ int boucle_for_simple (char ** args, int last_status){
     char *ext = "";
     char *type = "";
     //char *max;
+    int brace = 0;
     for (int i = 0; args[i] != NULL; i++){
         if (strcmp(args[i], "-A") == 0){
             option_A = 1;
@@ -177,10 +207,15 @@ int boucle_for_simple (char ** args, int last_status){
     char **commande = malloc(MAX_COM * sizeof(char));
     int tmp = current;
     int size = 0;
-    for (int i = tmp; strcmp(args[i], "}") != 0; i++){
+    for (int i = tmp; args[i] != NULL; i++){
+        if (strcmp(args[i], "{") == 0) brace++;
+        if (strcmp(args[i], "}") == 0){
+            if (brace == 0) break;
+            brace--;
+        }
         commande[i-tmp] = args[i];
         current++;
-        size++;
+        size++; 
     }
 
     int result = 0;
@@ -193,14 +228,25 @@ int boucle_for_simple (char ** args, int last_status){
     }
 
     while ((entry = readdir(d)) != NULL){
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
         //int index;
         // On remplace le $F par le nom du fichier courant
         char **args_with_file = malloc(MAX_COM * sizeof(char *));
+        char placeholder[3];
+        placeholder[0] = '$';
+        placeholder[1] = args[1][0];
+        placeholder[2] = '\0';
+        //strcat(placeholder, "$");
+        //strcat(placeholder, args[1]);
+        //printf("placeholder : %s\n\n", placeholder);
         for (int i = 0; i < size; i++) {
-            args_with_file[i] = replace_args(rep, commande[i], entry->d_name, "$F");
+            args_with_file[i] = replace_args(rep, commande[i], entry->d_name, placeholder);
         }
         //fprintf(stderr, "size: %i", size);
         args_with_file[size] = NULL; // Terminer le tableau par NULL
+        
                 
         /*fprintf(stderr, "Affichage de args_with_file : \n");
         for (int i = 0; i < size; i++) {
@@ -248,9 +294,14 @@ int boucle_for_simple (char ** args, int last_status){
             free(args_with_rep);
         }
 
+        char commande_for [MAX_COM];
+        concatenate_args(args_with_file, commande_for);
+        //fprintf(stderr, "commande : %s\n", commande_for);
+        if (is_structured(commande_for)) result = *execute_structured_command(commande_for, last_status);
         // Exécuter la commande avec les arguments modifiés
-        result = execute_commande_quelconque(args_with_file, last_status);
-
+        else{ 
+            result = execute_commande_quelconque(args_with_file, last_status);
+        }
         // Libérer la mémoire allouée pour args_with_file
         /*for (int i = 0; args_with_file[i] != NULL; i++) {
             free(args_with_file[i]);
