@@ -116,12 +116,14 @@ int main(){
         if (is_redirection(command) == 0){
             //printf("on a bien une redirection\n");
             last_status = make_redirection(command,last_status);
+            free(command);
         }
 
         /* Execution d'une commande structure */
         else if (is_structured(command)){
             //printf("c'est structuré ! \n");
             last_status = *execute_structured_command(command, last_status);
+            free(command);
         }
 
         else{
