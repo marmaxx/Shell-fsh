@@ -169,6 +169,7 @@ int execute_pipe(char *command, int last_status) {
             
                 //printf("%i", result);
             } 
+            
         }
         
         else if (pid < 0){
@@ -185,10 +186,10 @@ int execute_pipe(char *command, int last_status) {
 
     int result = 0;
 
-    for (int i = 0; i < args_count; i++) {
+    for (int i = 0; i<args_count; i++){
         int status;
         pid_t pid = wait(&status);
-        if (pid > 0) {
+        if (pid > 0 && i == args_count - 1) {
             //on récupère la valeur de retour de l'enfant
             if (WIFEXITED(status)) {
                 result = WEXITSTATUS(status); //on met à jour le résultat

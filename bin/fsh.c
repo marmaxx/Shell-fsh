@@ -112,21 +112,9 @@ int main(){
         if (strlen(command) > 0) {
             add_history(command);  
         }
-        
-        /* Execution d'une redirection */  
-        if (is_redirection(command) == 0){
-            //printf("on a bien une redirection\n");
-            last_status = make_redirection(command,last_status);
-        }
-
-        /* Execution d'une commande structure */
-        else if (is_structured(command)){
-            //printf("c'est structuré ! \n");
-            last_status = *execute_structured_command(command, last_status);
-        }
 
         /* Execution d'une commande avec pipes*/
-        else if (is_Pipe_Command(command)){
+        if (is_Pipe_Command(command)){
             if (decoupe_pipe_commande(command)){
             last_status = execute_pipe(command, last_status);
             }
@@ -135,7 +123,19 @@ int main(){
                 return last_status;
             }
         }
-
+        
+        /* Execution d'une commande structure */
+        else if (is_structured(command)){
+            //printf("c'est structuré ! \n");
+            last_status = *execute_structured_command(command, last_status);
+        }
+        
+        /* Execution d'une redirection */  
+        else if (is_redirection(command) == 0){
+            //printf("on a bien une redirection\n");
+            last_status = make_redirection(command,last_status);
+        }
+        
         else{
             /* Decoupe la commande */
             char **args = decoupe(command);
