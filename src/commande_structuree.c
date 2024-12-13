@@ -13,7 +13,22 @@
 #define MAX_COM 64
 
 int is_structured(const char *command) {
-    return strchr(command, ';') != NULL;
+    int has_semicolon = 0;  // Pour vérifier s'il y a un point-virgule
+    int has_open_brace = 0; // Pour vérifier s'il y a une accolade '{'
+
+    for (int i = 0; command[i] != '\0'; i++) {
+        if (command[i] == '{') {
+            has_open_brace = 1; // Une accolade '{' a été rencontrée
+        }
+        if (command[i] == ';') {
+            has_semicolon = 1;  // Un point-virgule a été rencontré
+            if (has_open_brace) {
+                return 0;  // Retourne faux si une accolade '{' précède le ';'
+            }
+        }
+    }
+
+    return has_semicolon; // Retourne vrai si un ';' est trouvé sans accolade '{' avant
 }
 
 char *trim_whitespace(char *str) {
