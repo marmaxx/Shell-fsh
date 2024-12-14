@@ -78,7 +78,7 @@ char **decoupe_commande_structuree(const char *command) {
     }
 
     sub_commands[cmd_count] = NULL; // Terminer le tableau avec NULL
-
+    free(current);
     free(command_copy); 
     return sub_commands;
 }
@@ -108,8 +108,13 @@ int *execute_structured_command(const char *command, int last_status){
         else{
             result[1] = execute_commande_quelconque(new_args, last_status);
         }
-        //printf("%d\n", result);
+        free(new_args);
     }
+
+    for (int i = 0; commande_decoupee[i] != NULL; i++) {
+        free(commande_decoupee[i]);
+    }
+    free(commande_decoupee);
     return result;
 }
 

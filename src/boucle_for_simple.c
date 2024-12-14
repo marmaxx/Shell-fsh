@@ -12,7 +12,7 @@
 #include "../include/fsh.h"
 #include "../include/commande_structuree.h"
 
-#define MAX_COM 128 
+#define MAX_COM 1024 
 
 char *replace_args(const char *rep, const char *arg, const char *file_name, char * pl) {
     const char *placeholder = pl;
@@ -61,20 +61,6 @@ char *replace_args(const char *rep, const char *arg, const char *file_name, char
     strcpy(insert_point, arg);
     return result;
 }
-
-/*int has_extension(const char *filename, const char *ext) {
-    // Trouve le dernier point dans le nom de fichier
-    const char *dot = strrchr(filename, '.') + 1;
-    //dot++;
-
-    // Vérifie que le point existe et que ce n'est pas le dernier caractère
-    if (!dot || dot == filename) {
-        return 0;
-    }
-
-    // Compare l'extension avec celle recherchée
-    return strcmp(dot, ext) == 0;
-}*/
 
 int has_extension(const char *filename, const char *ext) {
     size_t filename_len = strlen(filename);
@@ -126,7 +112,7 @@ int boucle_for_simple (char ** args, int last_status){
     char *type = "";
     //char *max;
     int brace = 0;
-    for (int i = 0; args[i] != NULL; i++){
+    for (int i = 0; strcmp(args[i], "{") != 0; i++){
         if (strcmp(args[i], "-A") == 0){
             option_A = 1;
             current++;
@@ -264,15 +250,11 @@ int boucle_for_simple (char ** args, int last_status){
             continue;
         }
 
-        // Si -t est activé, vérifier le type de fichier
-        if (option_t && !matches_type(entry, type)) {
-            continue;
-        }
-
         // Si -r est activé, vérifier si le fichier est un répertoire
         if (option_r == 1 && entry->d_type == DT_DIR){
             //fprintf(stderr, "ancien rep: %s\n", rep);
             char * new_rep = malloc(strlen(rep) + entry->d_reclen + 1);
+            new_rep[0] = '\0';
             strcat(new_rep, rep);
             strcat(new_rep, "/");
             strcat(new_rep, entry->d_name);
@@ -291,21 +273,33 @@ int boucle_for_simple (char ** args, int last_status){
             }
             fprintf(stderr, "\n");*/
             last_status = boucle_for_simple(args_with_rep, last_status);
+            for (int i = 0; args_with_rep[i] != NULL; i++) {
+                free(args_with_rep[i]);
+            }
             free(args_with_rep);
         }
+
+        // Si -t est activé, vérifier le type de fichier
+        if (option_t && !matches_type(entry, type)) {
+            continue;
+        }
+
 
         char commande_for [MAX_COM];
         concatenate_args(args_with_file, commande_for);
         //fprintf(stderr, "commande : %s\n", commande_for);
-        if (is_structured(commande_for)) result = *execute_structured_command(commande_for, last_status);
+        if (is_structured(commande_for)){
+            int *tmp = execute_structured_command(commande_for, last_status);
+            result = tmp[1];
+        }
         // Exécuter la commande avec les arguments modifiés
         else{ 
             result = execute_commande_quelconque(args_with_file, last_status);
         }
         // Libérer la mémoire allouée pour args_with_file
-        /*for (int i = 0; args_with_file[i] != NULL; i++) {
+        for (int i = 0; args_with_file[i] != NULL; i++) {
             free(args_with_file[i]);
-        }*/
+        }
         free(args_with_file);
     }
 
