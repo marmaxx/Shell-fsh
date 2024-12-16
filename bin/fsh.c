@@ -19,6 +19,7 @@
 #include "../include/commande_structuree.h"
 #include "../include/if_else.h"
 #include "../include/redirection.h"
+#include "../include/pipe.h"
 
 int execute_commande_quelconque(char **args, int last_status){
     // Quitte la boucle si le user ecrit exit 
@@ -115,21 +116,33 @@ int main(int argc, char *argv[]){
         if (strlen(command) > 0) {
             add_history(command);  
         }
-        
-        /* Execution d'une redirection */  
-        if (is_redirection(command) == 0){
-            //printf("on a bien une redirection\n");
-            last_status = make_redirection(command,last_status);
-            free(command);
-        }
 
+        /* Execution d'une commande avec pipes*/
+        if (is_Pipe_Command(command)){
+            if (decoupe_pipe_commande(command)){
+            last_status = execute_pipe(command, last_status);
+            }
+            else {
+                last_status = 1;
+                free(command);
+                return last_status;
+            }
+        }
+        
         /* Execution d'une commande structure */
         else if (is_structured(command)){
             //printf("c'est structuré ! \n");
             last_status = *execute_structured_command(command, last_status);
             free(command);
         }
-
+        
+        /* Execution d'une redirection */  
+        else if (is_redirection(command) == 0){
+            //printf("on a bien une redirection\n");
+            last_status = make_redirection(command,last_status);
+            free(command);
+        }
+        
         else{
             /* Decoupe la commande */
             char **args = decoupe(command);
@@ -155,7 +168,7 @@ int main(int argc, char *argv[]){
             /* Execute la commande */
             else{
                 last_status = execute_commande_quelconque(args, last_status);
-            }
+            } 
 
             /* clean la memeoire */ 
             /*for (int i = 0; args[i] != NULL; i++) {
@@ -165,6 +178,7 @@ int main(int argc, char *argv[]){
             free(args);
         }
     }
+    //fprintf(stderr, "%i", last_status);
     
     return last_status;
 }
