@@ -13,46 +13,48 @@
 #define MAX_COM 64
 
 int is_structured(const char *command) {
-    int has_semicolon = 0;  // Pour vérifier s'il y a un point-virgule
-    int has_open_brace = 0; // Pour vérifier s'il y a une accolade '{'
+    int inside_braces = 1;
 
     for (int i = 0; command[i] != '\0'; i++) {
         if (command[i] == '{') {
-            has_open_brace = 1; // Une accolade '{' a été rencontrée
-        }
-        if (command[i] == ';') {
-            has_semicolon = 1;  // Un point-virgule a été rencontré
-            if (has_open_brace) {
-                return 0;  // Retourne faux si une accolade '{' précède le ';'
+            inside_braces = 0;
+        } else if (command[i] == '}') {
+            inside_braces = 1;
+        } else if (command[i] == ';') {
+            if (inside_braces) {
+                return 1; // Un point-virgule trouvé à l'intérieur des accolades
             }
         }
     }
 
-    return has_semicolon; // Retourne vrai si un ';' est trouvé sans accolade '{' avant
+    return 0; // Aucun point-virgule trouvé à l'intérieur des accolades
 }
 
-char *trim_whitespace(char *str) {
-    if (!str) return NULL;
-
-    // On supprime les espaces en début
-    while (isspace((unsigned char)*str)) {
-        str++;
-    }
-
-    // Si la chaîne est vide après suppression
-    if (*str == '\0') {
+// Fonction pour enlever les espaces autour de la chaîne
+char* trim_whitespace(char *str) {
+    while(isspace((unsigned char)*str)) str++;  // Enlever les espaces au début
+    if(*str == 0)  // Si la chaîne est vide après avoir enlevé les espaces
         return str;
-    }
-
-    // On supprime les espaces en fin
     char *end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) {
-        *end-- = '\0';
-    }
-
+    while(end > str && isspace((unsigned char)*end)) end--;  // Enlever les espaces à la fin
+    *(end+1) = 0;
     return str;
 }
 
+// Fonction pour vérifier si le caractère courant est dans une accolade
+int is_in_braces(const char *command, int index) {
+    int brace_count = 0;
+    for (int i = 0; i < index; i++) {
+        if (command[i] == '{') {
+            brace_count++;
+        } else if (command[i] == '}') {
+            brace_count--;
+        }
+    }
+    return brace_count > 0;  // Si on est à l'intérieur d'une accolade, renvoyer vrai
+}
+
+// Fonction pour découper la commande en sous-commandes tout en tenant compte des accolades
 char **decoupe_commande_structuree(const char *command) {
     char **sub_commands = malloc(MAX_COM * sizeof(char *));
     if (!sub_commands) {
@@ -60,26 +62,38 @@ char **decoupe_commande_structuree(const char *command) {
         exit(EXIT_FAILURE);
     }
 
-    char *command_copy = strdup(command); 
-    if (!command_copy) {
-        perror("Erreur d'allocation mémoire pour la copie");
-        free(sub_commands);
-        exit(EXIT_FAILURE);
+    int cmd_count = 0;
+    int start_index = 0;
+    int length = strlen(command);
+
+    for (int i = 0; i < length; i++) {
+        // Si on trouve un point-virgule et qu'on n'est pas dans des accolades
+        if (command[i] == ';' && !is_in_braces(command, i)) {
+            // On crée une sous-commande entre start_index et i
+            int sub_cmd_length = i - start_index;
+            char *sub_command = malloc(sub_cmd_length + 1);
+            if (!sub_command) {
+                perror("Erreur d'allocation mémoire pour la sous-commande");
+                exit(EXIT_FAILURE);
+            }
+            strncpy(sub_command, &command[start_index], sub_cmd_length);
+            sub_command[sub_cmd_length] = '\0';
+            sub_commands[cmd_count] = strdup(trim_whitespace(sub_command));
+            cmd_count++;
+            free(sub_command);
+
+            // Mettre à jour le point de départ de la prochaine sous-commande
+            start_index = i + 1;
+        }
     }
 
-    char *current = strtok(command_copy, ";");
-    int cmd_count = 0;
-
-    // On découpe les sous-commandes par `;`
-    while (current != NULL && cmd_count < MAX_COM - 1) {
-        // On enlève les espaces autour de la sous-commande
-        sub_commands[cmd_count++] = strdup(trim_whitespace(current));
-        current = strtok(NULL, ";");
+    // Ajouter la dernière sous-commande, qui ne se termine pas par un point-virgule
+    if (start_index < length) {
+        sub_commands[cmd_count] = strdup(trim_whitespace(&command[start_index]));
+        cmd_count++;
     }
 
     sub_commands[cmd_count] = NULL; // Terminer le tableau avec NULL
-    free(current);
-    free(command_copy); 
     return sub_commands;
 }
 
@@ -97,7 +111,10 @@ int *execute_structured_command(const char *command, int last_status){
         while (end > args && isspace(*end)) *end-- = '\0';
 
         char ** new_args = decoupe(args);
-
+        /*for (int i = 0; new_args[i] != NULL; i++){
+            fprintf(stderr, "%s#", new_args[i]);
+        }
+        fprintf(stderr, "\n");*/
         //printf("Exécution de la sous-commande : %s\n", args);
         //printf("args = #%s#\n", args);
         if (strcmp(new_args[0], "exit") == 0){
@@ -117,4 +134,3 @@ int *execute_structured_command(const char *command, int last_status){
     free(commande_decoupee);
     return result;
 }
-

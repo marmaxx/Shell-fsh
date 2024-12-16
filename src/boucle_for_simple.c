@@ -62,7 +62,20 @@ char *replace_args(const char *rep, const char *arg, const char *file_name, char
     return result;
 }
 
-int has_extension(const char *filename, const char *ext) {
+void remove_extension(const char *filename, char *output) {
+    // Copie le nom du fichier dans l'output
+    strcpy(output, filename);
+
+    // Recherche le dernier point dans le nom du fichier
+    char *dot = strrchr(output, '.');
+
+    // Si un point est trouvé et qu'il n'est pas en première position
+    if (dot != NULL && dot != output) {
+        *dot = '\0';  // Coupe la chaîne au niveau du point
+    }
+}
+
+int has_extension(const char *filename, char *ext) {
     size_t filename_len = strlen(filename);
     size_t ext_len = strlen(ext);
 
@@ -227,8 +240,12 @@ int boucle_for_simple (char ** args, int last_status){
         //strcat(placeholder, "$");
         //strcat(placeholder, args[1]);
         //printf("placeholder : %s\n\n", placeholder);
+        char file_name[MAX_COM];
+        remove_extension(entry->d_name, file_name);
+        //fprintf(stderr, "fic sans extension : %s\n", file_name);
         for (int i = 0; i < size; i++) {
-            args_with_file[i] = replace_args(rep, commande[i], entry->d_name, placeholder);
+            if (option_e) args_with_file[i] = replace_args(rep, commande[i], file_name, placeholder);
+            else args_with_file[i] = replace_args(rep, commande[i], entry->d_name, placeholder);
         }
         //fprintf(stderr, "size: %i", size);
         args_with_file[size] = NULL; // Terminer le tableau par NULL
@@ -257,7 +274,8 @@ int boucle_for_simple (char ** args, int last_status){
             new_rep[0] = '\0';
             strcat(new_rep, rep);
             strcat(new_rep, "/");
-            strcat(new_rep, entry->d_name);
+            if (option_e) strcat(new_rep, file_name);
+            else strcat(new_rep, entry->d_name);
             //fprintf(stderr, "nouveau rep : %s\n", new_rep);
             char **args_with_rep = malloc(MAX_COM * sizeof(char *));
             int i;
@@ -289,12 +307,14 @@ int boucle_for_simple (char ** args, int last_status){
         concatenate_args(args_with_file, commande_for);
         //fprintf(stderr, "commande : %s\n", commande_for);
         if (is_structured(commande_for)){
+            //fprintf(stderr, "struct\n");
             int *tmp = execute_structured_command(commande_for, last_status);
-            result = tmp[1];
+            if (tmp[1] > result) result = tmp[1];
         }
         // Exécuter la commande avec les arguments modifiés
         else{ 
-            result = execute_commande_quelconque(args_with_file, last_status);
+            int tmp = execute_commande_quelconque(args_with_file, last_status);
+            if (tmp > result) result = tmp;
         }
         // Libérer la mémoire allouée pour args_with_file
         for (int i = 0; args_with_file[i] != NULL; i++) {
