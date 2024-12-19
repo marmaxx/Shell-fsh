@@ -114,15 +114,13 @@ int main(int argc, char *argv[]){
         }
 
         /* Execution d'une commande avec pipes*/
-        if (is_Pipe_Command(command)){
-            if (decoupe_pipe_commande(command)){
-            last_status = execute_pipe(command, last_status);
-            }
-            else {
-                last_status = 1;
-                free(command);
-                return last_status;
-            }
+        
+        
+        /* Execution d'une redirection */  
+        /*else */if (is_redirection(command) == 0){
+            //printf("on a bien une redirection\n");
+            last_status = make_redirection(command,last_status);
+            free(command);
         }
         
         /* Execution d'une commande structure */
@@ -133,14 +131,16 @@ int main(int argc, char *argv[]){
             free(tmp);
             free(command);
         }
-        
-        /* Execution d'une redirection */  
-        else if (is_redirection(command) == 0){
-            //printf("on a bien une redirection\n");
-            last_status = make_redirection(command,last_status);
-            free(command);
-        }
-        
+        /*else if (is_Pipe_Command(command)){
+            if (decoupe_pipe_commande(command)){
+            last_status = execute_pipe(command, last_status);
+            }
+            else {
+                last_status = 1;
+                free(command);
+                return last_status;
+            }
+        }*/
         else{
             /* Decoupe la commande */
             char **args = decoupe(command);
