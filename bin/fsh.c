@@ -124,6 +124,7 @@ int main(int argc, char *argv[]){
             //printf("c'est structuré ! \n");
             int *tmp = *execute_structured_command(command, last_status);
             last_status = tmp[1];
+            free(tmp);
             free(command);
         }
 
