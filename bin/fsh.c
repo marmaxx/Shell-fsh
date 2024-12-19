@@ -128,7 +128,7 @@ int main(int argc, char *argv[]){
         /* Execution d'une commande structure */
         else if (is_structured(command)){
             //printf("c'est structuré ! \n");
-            int *tmp = *execute_structured_command(command, last_status);
+            int *tmp = execute_structured_command(command, last_status);
             last_status = tmp[1];
             free(tmp);
             free(command);
