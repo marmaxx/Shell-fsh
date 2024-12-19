@@ -69,6 +69,7 @@ int executer_commande_if_else (char ** args, int last_status){
         if (is_structured(commande_if2)){
             int *tmp = execute_structured_command(commande_if2, last_status);
             result = tmp[1];
+            free(tmp);
         }
         else{
             result = execute_commande_quelconque(commande_if, last_status);
@@ -76,10 +77,12 @@ int executer_commande_if_else (char ** args, int last_status){
 
         if (strcmp(args[current], "}") != 0){
             perror("il manque l'accolade sortante du if");
+            free(commande_if);
             return -1;
         }
 
         current++; // on saute l'accolade
+        free(commande_if);
         return result;
     }
 

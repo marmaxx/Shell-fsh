@@ -223,6 +223,7 @@ int boucle_for_simple (char ** args, int last_status){
 
     if (d == NULL){
         perror("Erreur d'ouverture du répertoire");
+        free(commande);
         return 1;
     }
 
@@ -259,11 +260,19 @@ int boucle_for_simple (char ** args, int last_status){
 
          // Si -A n'est pas activé, ignorer les fichiers cachés
         if (!option_A && entry->d_name[0] == '.') {
+            for (int i = 0; args_with_file[i] != NULL; i++) {
+                free(args_with_file[i]);
+            }
+            free(args_with_file);
             continue;
         }
 
         // Si -e est activé, vérifier l'extension
         if (option_e && !has_extension(entry->d_name, ext)) {
+            for (int i = 0; args_with_file[i] != NULL; i++) {
+                free(args_with_file[i]);
+            }
+            free(args_with_file);
             continue;
         }
 
@@ -299,6 +308,10 @@ int boucle_for_simple (char ** args, int last_status){
 
         // Si -t est activé, vérifier le type de fichier
         if (option_t && !matches_type(entry, type)) {
+            for (int i = 0; args_with_file[i] != NULL; i++) {
+                free(args_with_file[i]);
+            }
+            free(args_with_file);
             continue;
         }
 
@@ -310,6 +323,7 @@ int boucle_for_simple (char ** args, int last_status){
             //fprintf(stderr, "struct\n");
             int *tmp = execute_structured_command(commande_for, last_status);
             if (tmp[1] > result) result = tmp[1];
+            free(tmp);
         }
         // Exécuter la commande avec les arguments modifiés
         else{ 
