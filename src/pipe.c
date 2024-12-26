@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <ctype.h>
+#include <signal.h>
 
 #include "../include/externe.h"
 #include "../include/decoupeCmd.h"
@@ -143,7 +144,7 @@ int execute_pipe(char *command, int last_status) {
         }
     }
 
-    for (int i = 0; i < args_count; i++) {
+    for (int i = args_count - 1; i >= 0; i--) {
         pid_t pid = fork();
 
         if (pid == 0) { //processus enfant
@@ -180,8 +181,9 @@ int execute_pipe(char *command, int last_status) {
             } else { //sinon, on exécute la commande "quelconque"
                 //fprintf(stderr, "On execute la commande : %s\n", args[i]);
                 char **args_i = decoupe(args[i]);
-                _exit(execute_commande_quelconque(args_i, last_status));
-            
+                int res = execute_commande_quelconque(args_i, last_status);
+                //printf("val de retour: %i\n", res);
+                _exit(res/* = execute_commande_quelconque(args_i, last_status)*/);
                 //printf("%i", result);
             } 
             
@@ -201,7 +203,7 @@ int execute_pipe(char *command, int last_status) {
 
     int result = 0;
 
-    for (int i = 0; i<args_count; i++){
+    for (int i = args_count - 1; i>=0; i--){
         int status;
         pid_t pid = wait(&status);
         if (pid > 0 && i == args_count - 1) {
@@ -210,6 +212,7 @@ int execute_pipe(char *command, int last_status) {
                 result = WEXITSTATUS(status); //on met à jour le résultat
                 //printf("%i\n", result);
             } else {
+                //printf("l'enfant a échoué");
                 result = 1; //si le processus enfant a échoué
             }
         }
