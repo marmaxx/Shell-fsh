@@ -116,12 +116,12 @@ int main(int argc, char *argv[]){
         /* Execution d'une commande avec pipes*/
         if (is_Pipe_Command(command)){
             if (decoupe_pipe_commande(command)){
-                printf("youpi");
+                //printf("youpi");
                 last_status = execute_pipe(command, last_status);
                 free(command);
             }
             else {
-                printf("bouh");
+                //printf("bouh");
                 last_status = 1;
                 free(command);
             }

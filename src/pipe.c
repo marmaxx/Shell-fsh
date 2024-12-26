@@ -68,7 +68,7 @@ int decoupe_pipe_commande(char *command) { //découpe la commande et renvoie un 
         
         args_count++;   
         
-        printf("Debug: Commande analysée: '%s'\n", start);
+        //printf("Debug: Commande analysée: '%s'\n", start);
         if (strchr(start, '|') != NULL && is_redirection(start)){
             fprintf(stderr, "Erreur de syntaxe: pas d'espaces entre les |\n");
             for (int i = 0; i < args_count; i++) {
@@ -82,7 +82,7 @@ int decoupe_pipe_commande(char *command) { //découpe la commande et renvoie un 
         start = end + 3;
     }
 
-    printf("Debug: Commande analysée: '%s'\n", start);
+    //printf("Debug: Commande analysée: '%s'\n", start);
     if (strchr(start, '|') != NULL && is_redirection(start)){
         fprintf(stderr, "Erreur de syntaxe: pas d'espaces entre les |\n");
         for (int i = 0; i < args_count; i++) {
