@@ -16,7 +16,7 @@ int args_count = 0;
 
 int is_Pipe_Command(char *command) {
 //vérification de la présence du caractère '|', pas de '||' ni '|' au début ou à la fin
-    if (strchr(command, '|') == NULL) {
+    if (strstr(command, " | ") == NULL) {
         //write(STDERR_FILENO, "Erreur de syntaxe : aucun '|' trouvé\n", 37);
         return 0;
     }
@@ -34,50 +34,20 @@ int is_Pipe_Command(char *command) {
     return 1;
 }
 
-int verify_spaces_around_pipes(char *command) {
-    //vérification qu'il y ait un espace avant et après chaque '|' (sauf en début et fin)
-    for (int i = 1; i < strlen(command) - 1; i++) {
-        if (command[i] == '|') {
-            if (command[i - 1] != ' ' || command[i + 1] != ' ') {
-                fprintf(stderr, "Erreur de syntaxe : pas d'espace avant ou après '|' \n");
-                return 0;
-            }
-        }
-    }
-    return 1;
-}
 
-int decoupe_pipe_commande(char *command) {
+int decoupe_pipe_commande(char *command) { //découpe la commande et renvoie un booléen qui indique si la commande est valide ou non
     
-    if (!is_Pipe_Command(command)) {
+    /*if (!is_Pipe_Command(command)) {
         return 0;  //commande invalide si ce n'est pas une commande avec des pipes
-    }
+    }*/
 
-    // Vérifier qu'il y a un espace avant et après chaque pipe
-    if (!verify_spaces_around_pipes(command)) {
-        return 0;  // Si la syntaxe est incorrecte, on arrête
-    }
+    char *end;
+    char *start = command;
+    //découpage de la commande à chaque " | "
+    while ((end = strstr(start, " | ")) != NULL) {
+        *end = '\0';  // on termine la chaîne après le " | "
 
-    char *token = strtok(command, "|");
-
-    while (token != NULL) {
-        //printf("Token: '%s'\n", token);  // Debug : Affiche chaque token découpé
-
-        //suppression des espaces en début et fin de chaque sous-commande
-        while (isspace((unsigned char)*token)) token++;
-        char *end = token + strlen(token) - 1;
-        while (end > token && isspace((unsigned char)*end)) {
-            *end-- = '\0';
-        }
-
-        //on vérifie si la sous-commande est vide après nettoyage
-        if (strlen(token) == 0) {
-            fprintf(stderr, "Erreur de syntaxe : sous-commande vide\n");
-            free(args);
-            return 0;
-        }
-
-        //ajout de la sous-commande à args
+        //on ajoute la sous-commande à args
         char **new_args = realloc(args, (args_count + 1) * sizeof(char *));
         if (new_args == NULL) {
             perror("realloc : erreur");
@@ -86,21 +56,66 @@ int decoupe_pipe_commande(char *command) {
         }
         args = new_args;
 
-        args[args_count] = strdup(token); //utilisation de strdup pour éviter de modifier la chaîne source
+        args[args_count] = strdup(start); //on sauvegarde la sous-commande
         if (args[args_count] == NULL) {
-            perror("malloc : erreur");
+            perror("strdup : erreur");
             for (int i = 0; i < args_count; i++) {
                 free(args[i]);
             }
             free(args);
             return 0;
         }
-
-        args_count++;
-        token = strtok(NULL, "|");
+        
+        args_count++;   
+        
+        printf("Debug: Commande analysée: '%s'\n", start);
+        if (strchr(start, '|') != NULL && is_redirection(start)){
+            fprintf(stderr, "Erreur de syntaxe: pas d'espaces entre les |\n");
+            for (int i = 0; i < args_count; i++) {
+                free(args[i]);
+            }
+            free(args);
+            return 0;
+        } 
+        
+        //on avance "start" après le " | "
+        start = end + 3;
     }
 
-    //ajout d'un pointeur NULL pour marquer la fin
+    printf("Debug: Commande analysée: '%s'\n", start);
+    if (strchr(start, '|') != NULL && is_redirection(start)){
+        fprintf(stderr, "Erreur de syntaxe: pas d'espaces entre les |\n");
+        for (int i = 0; i < args_count; i++) {
+            free(args[i]);
+        }
+        free(args);
+        return 0;
+    }
+
+    //on ajoute la dernière sous-commande
+    char **new_args = realloc(args, (args_count + 1) * sizeof(char *));
+    if (new_args == NULL) {
+        perror("realloc : erreur");
+        for (int i = 0; i < args_count; i++) {
+            free(args[i]);
+        }
+        free(args);
+        return 0;
+    }
+    args = new_args;
+
+    args[args_count] = strdup(start); //on sauvegarde la dernière sous-commande
+    if (args[args_count] == NULL) {
+        perror("strdup : erreur");
+        for (int i = 0; i < args_count; i++) {
+            free(args[i]);
+        }
+        free(args);
+        return 0;
+    }
+    args_count++;
+
+    //on marque la fin de la liste d'arguments
     char **final_args = realloc(args, (args_count + 1) * sizeof(char *));
     if (final_args == NULL) {
         perror("realloc : erreur");
@@ -111,7 +126,7 @@ int decoupe_pipe_commande(char *command) {
         return 0;
     }
     args = final_args;
-    args[args_count] = NULL;
+    args[args_count] = NULL; //ajout d'un dernier élément NULL pour la fin des arguments
 
     return 1;
 }
@@ -201,6 +216,9 @@ int execute_pipe(char *command, int last_status) {
     }
 
     //libération de la mémoire utilisée pour les arguments
+    for (int i = 0; i < args_count; i++) {
+        free(args[i]);
+    }
     free(args);
     args = NULL;
     args_count = 0;
