@@ -7,6 +7,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <limits.h>
+#include <signal.h>
 
 #include "../include/externe.h"
 #include "../include/prompt.h"
@@ -20,6 +21,12 @@
 #include "../include/if_else.h"
 #include "../include/redirection.h"
 #include "../include/pipe.h"
+
+#define _XOPEN_SOURCE 700
+
+void ignore_SIGTERM (int signum){
+
+}
 
 int execute_commande_quelconque(char **args, int last_status){
     // Quitte la boucle si le user ecrit exit 
@@ -86,6 +93,10 @@ int main(int argc, char *argv[]){
     char *command; 
     int last_status = 0;
     rl_outstream = stderr;
+    
+    struct sigaction action; 
+    memset(&action, 0, sizeof(struct sigaction));
+    action.sa_handler = ignore_SIGTERM;
 
     while(1){
         /* Création du prompt */ 
@@ -94,8 +105,15 @@ int main(int argc, char *argv[]){
         fprintf(stderr, "%s", prompt);
         fflush(stderr);
 
+        
+
         // Lit la commande du user 
         command = readline("$ "); 
+        
+        if (sigaction(SIGTERM, &action, NULL) == -1) { //on ignore SIGTERM
+            perror("Erreur: sigaction"); 
+            return 1;
+        }
 
         if(command == NULL){
             //printf("on sort de la boucle while");
@@ -177,7 +195,11 @@ int main(int argc, char *argv[]){
             free(command);
             free(args);
         }
+       
+       
+
     }
+
     //fprintf(stderr, "%i", last_status);
     
     return last_status;
