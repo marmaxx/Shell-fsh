@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 700
 # include <stdlib.h> 
 # include <stdio.h> 
 #include <string.h>
@@ -22,10 +23,9 @@
 #include "../include/redirection.h"
 #include "../include/pipe.h"
 
-#define _XOPEN_SOURCE 700
 
 void ignore_SIGTERM (int signum){
-
+    printf ("SIGTERM est ignoré");
 }
 
 int execute_commande_quelconque(char **args, int last_status){
@@ -96,7 +96,17 @@ int main(int argc, char *argv[]){
     
     struct sigaction action; 
     memset(&action, 0, sizeof(struct sigaction));
-    action.sa_handler = ignore_SIGTERM;
+    action.sa_handler = ignore_SIGTERM; 
+    sigemptyset(&action.sa_mask);
+    if (sigaction(SIGTERM, &action, NULL) == -1) { //on ignore SIGTERM
+        perror("Erreur: sigaction"); 
+        return 1;
+    }
+
+    /*sigset_t mask;
+    sigemptyset(&mask); //on crée un ensemble vide de signaux
+    sigaddset(&mask, SIGTERM); //on ajoute SIGTERM à l'ensemble des signaux à masquer
+    sigprocmask(SIG_BLOCK, &mask, NULL); //on bloque SIGTERM pour fsh */
 
     while(1){
         /* Création du prompt */ 
@@ -109,11 +119,7 @@ int main(int argc, char *argv[]){
 
         // Lit la commande du user 
         command = readline("$ "); 
-        
-        if (sigaction(SIGTERM, &action, NULL) == -1) { //on ignore SIGTERM
-            perror("Erreur: sigaction"); 
-            return 1;
-        }
+       
 
         if(command == NULL){
             //printf("on sort de la boucle while");

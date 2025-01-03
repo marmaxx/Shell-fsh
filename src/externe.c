@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,6 +7,7 @@
 #include <limits.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <signal.h>
 
 
 #include "../include/externe.h"
@@ -33,8 +35,24 @@ int commande_externe(char **args){
             //printf("Code d'erreur : %d\n", errno);
             perror("redirect_exec"); 
             exit(1);
-        }
+        } 
+        
+
     } else {
+       /*sigset_t all_signals;
+        //on crée un ensemble de tous les signaux
+        sigfillset(&all_signals);  //sigfillset ajoute tous les signaux à l'ensemble
+
+        //on bloque tous les signaux
+        if (sigprocmask(SIG_BLOCK, &all_signals, NULL) == -1) {
+            perror("Erreur: sigprocmask");
+            return 1;
+        }*/
+       sigset_t mask;
+    sigemptyset(&mask); //on crée un ensemble vide de signaux
+    sigaddset(&mask, SIGTERM); //on ajoute SIGTERM à l'ensemble des signaux à masquer
+    sigprocmask(SIG_BLOCK, &mask, NULL); //on bloque SIGTERM pour fsh 
+
         int status; 
         waitpid(pid, &status, 0); //processus parent attend la fin de l'execution du processus enfant 
         
