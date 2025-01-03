@@ -94,19 +94,19 @@ int main(int argc, char *argv[]){
     int last_status = 0;
     rl_outstream = stderr;
     
-    struct sigaction action; 
+    /*struct sigaction action; 
     memset(&action, 0, sizeof(struct sigaction));
     action.sa_handler = ignore_SIGTERM; 
     sigemptyset(&action.sa_mask);
     if (sigaction(SIGTERM, &action, NULL) == -1) { //on ignore SIGTERM
         perror("Erreur: sigaction"); 
         return 1;
-    }
+    }*/
 
-    /*sigset_t mask;
+    sigset_t mask;
     sigemptyset(&mask); //on crée un ensemble vide de signaux
     sigaddset(&mask, SIGTERM); //on ajoute SIGTERM à l'ensemble des signaux à masquer
-    sigprocmask(SIG_BLOCK, &mask, NULL); //on bloque SIGTERM pour fsh */
+    sigprocmask(SIG_BLOCK, &mask, NULL); //on bloque SIGTERM pour fsh
 
     while(1){
         /* Création du prompt */ 

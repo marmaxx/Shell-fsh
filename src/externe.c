@@ -14,9 +14,14 @@
 #include "../include/prompt.h"
 #include "../include/decoupeCmd.h"
 #include "../include/ftype.h"
+//#include <asm/signal.h>
 
 
 #define MAX_COM 64 
+
+void handle_signal (int signum){
+    exit(255);
+}
 
 
 int commande_externe(char **args){
@@ -35,9 +40,25 @@ int commande_externe(char **args){
             //printf("Code d'erreur : %d\n", errno);
             perror("redirect_exec"); 
             exit(1);
-        } 
-        
+        }
 
+        struct sigaction sa;
+    
+    // Initialiser la structure sigaction
+    memset(&sa, 0, sizeof(struct sigaction));  // Remplir la structure de 0
+    sa.sa_handler = handle_signal;  // Spécifie la fonction de gestion
+    sa.sa_flags = 0;  // Aucune option spéciale
+    sigemptyset(&sa.sa_mask);  // Ne bloque aucun signal pendant le traitement
+
+    // Gestion des signaux réels (SIGRTMIN à SIGRTMAX)
+    for (int sig = SIGRTMIN; sig <= SIGRTMAX; sig++) {
+        if (sigaction(sig, &sa, NULL) == -1) {
+            perror("Erreur: sigaction");
+            exit(1);
+        }
+    }
+
+    
     } else {
        /*sigset_t all_signals;
         //on crée un ensemble de tous les signaux
@@ -48,10 +69,10 @@ int commande_externe(char **args){
             perror("Erreur: sigprocmask");
             return 1;
         }*/
-       sigset_t mask;
+       /*sigset_t mask;
     sigemptyset(&mask); //on crée un ensemble vide de signaux
     sigaddset(&mask, SIGTERM); //on ajoute SIGTERM à l'ensemble des signaux à masquer
-    sigprocmask(SIG_BLOCK, &mask, NULL); //on bloque SIGTERM pour fsh 
+    sigprocmask(SIG_BLOCK, &mask, NULL); //on bloque SIGTERM pour fsh */
 
         int status; 
         waitpid(pid, &status, 0); //processus parent attend la fin de l'execution du processus enfant 
