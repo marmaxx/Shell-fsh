@@ -1,4 +1,5 @@
 #define _XOPEN_SOURCE 700
+
 # include <stdlib.h> 
 # include <stdio.h> 
 #include <string.h>
@@ -22,10 +23,15 @@
 #include "../include/if_else.h"
 #include "../include/redirection.h"
 #include "../include/pipe.h"
+#include "../include/signal_handlers.h"
 
 
-void ignore_SIGTERM (int signum){
-    printf ("SIGTERM est ignoré");
+volatile int signal_recu = 0;
+volatile int last_status = 0;
+
+void handle_signal (int signum){
+    signal_recu = 1;
+    last_status = 255;
 }
 
 int execute_commande_quelconque(char **args, int last_status){
@@ -91,22 +97,31 @@ int execute_commande_quelconque(char **args, int last_status){
 
 int main(int argc, char *argv[]){
     char *command; 
-    int last_status = 0;
     rl_outstream = stderr;
     
-    /*struct sigaction action; 
-    memset(&action, 0, sizeof(struct sigaction));
-    action.sa_handler = ignore_SIGTERM; 
-    sigemptyset(&action.sa_mask);
-    if (sigaction(SIGTERM, &action, NULL) == -1) { //on ignore SIGTERM
-        perror("Erreur: sigaction"); 
-        return 1;
-    }*/
-
+    struct sigaction sa;
     sigset_t mask;
-    sigemptyset(&mask); //on crée un ensemble vide de signaux
-    sigaddset(&mask, SIGTERM); //on ajoute SIGTERM à l'ensemble des signaux à masquer
-    sigprocmask(SIG_BLOCK, &mask, NULL); //on bloque SIGTERM pour fsh
+
+    //initialisation de la structure sigaction
+    memset(&sa, 0, sizeof(struct sigaction));  //réinitialisation de la structure
+    sa.sa_handler = handle_signal;  //définition du gestionnaire de signal
+
+    //on bloque SIGTERM
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGTERM); //on ajoute SIGTERM au masque
+
+    //on masque SIGTERM, tout en traitant les autres signaux
+    sigprocmask(SIG_BLOCK, &mask, NULL);
+
+    //on configure les gestionnaires pour tous les signaux sauf SIGTERM
+    for (int sig = 1; sig < _NSIG; sig++) {
+        if (sig != SIGKILL && sig != SIGSTOP) {
+            if (sigaction(sig, &sa, NULL) == -1) {
+                //perror("Erreur sigaction");
+            }
+        }
+    }
+
 
     while(1){
         /* Création du prompt */ 
