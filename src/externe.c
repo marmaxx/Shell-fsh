@@ -25,8 +25,8 @@ volatile int commande_execution = 0;
 
 
 void handle_signal_commandes (int signum){
-    printf("signal fils");
-    signal_recu = 1;
+    //printf("signal fils");
+    //signal_recu = 1;
     exit (255);
 }
 
@@ -44,7 +44,7 @@ int commande_externe(char **args){
         exit(1);
     } else if(pid == 0 ){  
 
-        printf("commande en cours d'exécution\n");
+        //printf("commande en cours d'exécution\n");
 
         struct sigaction sa;
             

@@ -28,16 +28,19 @@ volatile extern int commande_execution;
 volatile pid_t pid_fils = 0;
 volatile sig_atomic_t flag_sigint = 0;
 volatile sig_atomic_t flag_sigterm = 0;
+volatile extern sig_atomic_t signal_recu;
 
 
 void handle_signal_fsh(int signum){
-    if (pid_fils == 0){
+    if (pid_fils == 0 && signum == SIGINT){
         printf("pas de commande");
         exit(1);
-
     }
-    //kill(pid_fils, SIGTERM);
-    printf("parent recu");
+    else if (pid_fils > 0){
+        signal_recu = 1;
+        printf("commande");
+    }//kill(pid_fils, SIGTERM);
+    //printf("parent recu");
 
 }
 
