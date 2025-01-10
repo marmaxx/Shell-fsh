@@ -8,10 +8,27 @@
 
 #include "../include/decoupeCmd.h"
 #include "../include/fsh.h"
+#include "../include/redirection.h"
 
+int is_redirection(const char *command) {
+    int inside_braces = 0;
 
+    for (int i = 0; command[i] != '\0'; i++) {
+        if (command[i] == '{') {
+            inside_braces++;
+        } else if (command[i] == '}') {
+            inside_braces--;
+        } else if (command[i] == '>' || command[i] == '>') {
+            if (inside_braces != 0) {
+                return 1; // Un point-virgule trouvé à l'intérieur des accolades
+            }
+        }
+    }
 
-int is_redirection(const char *cmd){
+    return is_simple_redirection(command); // Aucun point-virgule trouvé à l'intérieur des accolades
+}
+
+int is_simple_redirection(const char *cmd){
     if(cmd == NULL || strlen(cmd) < 4){
         return 1;
     }
@@ -201,9 +218,6 @@ while(nb_red > 0){
 
     /* Execution de la commande */
     result = execute_commande_quelconque(dec, last_status);
-    if (result != 0) {
-        perror("Erreur lors de l'execution de la commande avec redirection de sortie");
-    }
 
     /* Restauration de l'entree standard */
     if(dup2(stdin_backup, STDIN_FILENO) < 0){
