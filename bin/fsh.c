@@ -127,6 +127,15 @@ int main(int argc, char *argv[]){
             }
         }
         
+        /* Execution d'une commande structure */
+        else if (is_structured(command)){
+            //printf("c'est structuré ! \n");
+            int *tmp = execute_structured_command(command, last_status);
+            last_status = tmp[1];
+            free(tmp);
+            free(command);
+        }
+
         /* Execution d'une redirection */  
         else if (is_redirection(command) == 0){
             //printf("on a bien une redirection\n");
@@ -134,14 +143,6 @@ int main(int argc, char *argv[]){
             free(command);
         }
         
-        /* Execution d'une commande structure */
-        if (is_structured(command)){
-            //printf("c'est structuré ! \n");
-            int *tmp = execute_structured_command(command, last_status);
-            last_status = tmp[1];
-            free(tmp);
-            free(command);
-        }
         else{
             /* Decoupe la commande */
             char **args = decoupe(command);
