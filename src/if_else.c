@@ -7,6 +7,7 @@
 #include "../include/externe.h"
 #include "../include/commande_structuree.h"
 #include "../include/boucle_for_simple.h"
+#include "../include/redirection.h"
 
 #define MAX_COM 1024
 
@@ -21,16 +22,23 @@ int executer_commande_if_else (char ** args, int last_status){
         current++;
     }
     test[i-1] = NULL;
-    //fprintf(stderr, "Affichage de test : \n");
+    /*fprintf(stderr, "Affichage de test : \n");
             
-    /*for (int i = 0; test[i] != NULL; i++) {
+    for (int i = 0; test[i] != NULL; i++) {
         fprintf(stderr, "%s#", test[i]);
-    }*/
-    //fprintf(stderr, "\n%d\n", current);
+    }
+    fprintf(stderr, "\n%d\n", current);*/
 
     int result = 0;
-    int execute_test = commande_externe(test);//, last_status);
-    
+    int execute_test;
+    char new_test [MAX_COM];
+    concatenate_args(test, new_test);
+    if (is_redirection(new_test) == 0){
+        execute_test = make_redirection(new_test, last_status);
+    }
+    else{ 
+        execute_test = commande_externe(test);//, last_status);
+    }
     free(test);
 
     if (strcmp(args[current], "{") != 0){
@@ -64,12 +72,15 @@ int executer_commande_if_else (char ** args, int last_status){
         printf("\n");*/
         char commande_if2 [MAX_COM];
         concatenate_args(commande_if, commande_if2);
-        //fprintf(stderr, "commande : %s\n", commande_for);
+        //fprintf(stderr, "commande : %s\n", commande_if2);
         //fprintf(stderr, "structurée ? %i\n", is_structured(commande_for));
         if (is_structured(commande_if2)){
             int *tmp = execute_structured_command(commande_if2, last_status);
             result = tmp[1];
             free(tmp);
+        }
+        else if (is_redirection(commande_if2) == 0){
+            result = make_redirection(commande_if2, last_status);
         }
         else{
             result = execute_commande_quelconque(commande_if, last_status);
@@ -144,6 +155,9 @@ int executer_commande_if_else (char ** args, int last_status){
         if (is_structured(commande_else2)){
             int *tmp = execute_structured_command(commande_else2, last_status);
             result = tmp[1];
+        }
+        else if (is_redirection(commande_else2) == 0){
+            result = make_redirection(commande_else2, last_status);
         }
         else{
             result = execute_commande_quelconque(commande_else, last_status);

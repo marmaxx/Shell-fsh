@@ -9,8 +9,10 @@
 #include "../include/decoupeCmd.h"
 #include "../include/fsh.h"
 #include "../include/commande_structuree.h"
+#include "../include/boucle_for_simple.h"
+#include "../include/redirection.h"
 
-#define MAX_COM 64
+#define MAX_COM 1024
 
 int is_structured(const char *command) {
     int inside_braces = 1;
@@ -117,7 +119,12 @@ int *execute_structured_command(const char *command, int last_status){
         fprintf(stderr, "\n");*/
         //printf("Exécution de la sous-commande : %s\n", args);
         //printf("args = #%s#\n", args);
-        if (strcmp(new_args[0], "exit") == 0){
+        char redirec [MAX_COM];
+        concatenate_args(new_args, redirec);
+        if (is_redirection(redirec) == 0){
+            result[1] = make_redirection(redirec, last_status);
+        }
+        else if (strcmp(new_args[0], "exit") == 0){
             result[0] = 1;
             result[1]= execute_commande_quelconque(new_args, last_status);
             return result;

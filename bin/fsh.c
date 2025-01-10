@@ -115,22 +115,22 @@ int main(int argc, char *argv[]){
 
         /* Execution d'une commande avec pipes*/
         
-        
-        /* Execution d'une redirection */  
-        /*else */if (is_redirection(command) == 0){
-            //printf("on a bien une redirection\n");
-            last_status = make_redirection(command,last_status);
-            free(command);
-        }
-        
         /* Execution d'une commande structure */
-        else if (is_structured(command)){
+        if (is_structured(command)){
             //printf("c'est structuré ! \n");
             int *tmp = execute_structured_command(command, last_status);
             last_status = tmp[1];
             free(tmp);
             free(command);
         }
+
+        /* Execution d'une redirection */  
+        else if (is_redirection(command) == 0){
+            //printf("on a bien une redirection\n");
+            last_status = make_redirection(command,last_status);
+            free(command);
+        }
+        
         /*else if (is_Pipe_Command(command)){
             if (decoupe_pipe_commande(command)){
             last_status = execute_pipe(command, last_status);
