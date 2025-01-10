@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "../include/pwd.h"
 #include "../include/prompt.h"
@@ -13,7 +14,7 @@
 #define CYAN "\001\033[36m\002"   
 #define RESET "\001\033[00m\002"  // Retour à la couleur normale
 
-extern volatile int signal_recu;
+volatile sig_atomic_t signal_recu = 0;
 
 
 // Fonction pour créer un prompt tronqué

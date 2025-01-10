@@ -25,26 +25,19 @@
 #include "../include/pipe.h"
 
 volatile extern int commande_execution;
-volatile extern pid_t pid;
+volatile pid_t pid_fils = 0;
 volatile sig_atomic_t flag_sigint = 0;
 volatile sig_atomic_t flag_sigterm = 0;
 
-/*void handle_signal (int signum){
-    signal_recu = 1;
-    last_status = 255;
-}*/
 
 void handle_signal_fsh(int signum){
-    //kill(pid, signum);
+    if (pid_fils == 0){
+        printf("pas de commande");
+        exit(1);
 
-    /*switch (signum){
-        case SIGTERM : flag_sigterm = 1; break;
-        case SIGINT : flag_sigint = 1;
-
-        
-    } */
-
-    //printf ("%i\n", flag_sigterm);
+    }
+    //kill(pid_fils, SIGTERM);
+    printf("parent recu");
 
 }
 
@@ -132,19 +125,10 @@ int main(int argc, char *argv[]){
     if (sigaction(SIGTERM, &sa, NULL)==-1){
         perror("sigaction error");
     }
-    /*if (sigaction(SIGINT, &sa, NULL)==-1){
-        perror("sigaction error");
-    }*/
 
-    
-   /* //on configure les gestionnaires pour tous les signaux sauf SIGTERM
-    for (int sig = 1; sig < _NSIG; sig++) {
-        if (sig != SIGKILL && sig != SIGSTOP) {
-            if (sigaction(sig, &sa, NULL) == -1) {
-                //perror("Erreur sigaction");
-            }
-        }
-    }*/
+    if (sigaction(SIGINT, &sa, NULL)==-1){
+        perror("sigaction error");
+    }
 
     int last_status = 0;
 
