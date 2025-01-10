@@ -3,7 +3,6 @@
 
 #include <signal.h>
 
-void handle_signal(int sig);
 void handle_signal_commandes(int sig);
 
 #endif 

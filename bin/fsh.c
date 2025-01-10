@@ -23,13 +23,30 @@
 #include "../include/if_else.h"
 #include "../include/redirection.h"
 #include "../include/pipe.h"
-#include "../include/signal_handlers.h"
 
+volatile extern int commande_execution;
+volatile extern pid_t pid;
+volatile sig_atomic_t flag_sigint = 0;
+volatile sig_atomic_t flag_sigterm = 0;
 
 /*void handle_signal (int signum){
     signal_recu = 1;
     last_status = 255;
 }*/
+
+void handle_signal_fsh(int signum){
+    //kill(pid, signum);
+
+    /*switch (signum){
+        case SIGTERM : flag_sigterm = 1; break;
+        case SIGINT : flag_sigint = 1;
+
+        
+    } */
+
+    //printf ("%i\n", flag_sigterm);
+
+}
 
 int execute_commande_quelconque(char **args, int last_status){
     // Quitte la boucle si le user ecrit exit 
@@ -97,18 +114,29 @@ int main(int argc, char *argv[]){
     rl_outstream = stderr;
     
     struct sigaction sa;
-    sigset_t mask;
+    //sigset_t mask;
 
     //initialisation de la structure sigaction
     memset(&sa, 0, sizeof(struct sigaction));  //réinitialisation de la structure
 
     //on bloque SIGTERM
-    sigemptyset(&mask);
+    /*sigemptyset(&mask);
     sigaddset(&mask, SIGTERM); //on ajoute SIGTERM au masque
+    sa.sa_flags = SA_NODEFER;
 
-    //on masque SIGTERM, tout en traitant les autres signaux
-    sigprocmask(SIG_BLOCK, &mask, NULL);
+    //on masque SIGTERM
+    sigprocmask(SIG_BLOCK, &mask, NULL);*/
 
+    sa.sa_handler = handle_signal_fsh;
+
+    if (sigaction(SIGTERM, &sa, NULL)==-1){
+        perror("sigaction error");
+    }
+    /*if (sigaction(SIGINT, &sa, NULL)==-1){
+        perror("sigaction error");
+    }*/
+
+    
    /* //on configure les gestionnaires pour tous les signaux sauf SIGTERM
     for (int sig = 1; sig < _NSIG; sig++) {
         if (sig != SIGKILL && sig != SIGSTOP) {
@@ -122,6 +150,7 @@ int main(int argc, char *argv[]){
 
     while(1){
         /* Création du prompt */ 
+
         char prompt[PATH_MAX + 50];
         create_prompt(last_status, prompt, sizeof(prompt));
         fprintf(stderr, "%s", prompt);

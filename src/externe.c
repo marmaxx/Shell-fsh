@@ -18,53 +18,67 @@
 #define MAX_COM 64 
 
 volatile int signal_recu = 0;
+volatile pid_t pid;
+volatile extern sig_atomic_t flag_sigint;
+volatile extern sig_atomic_t flag_sigterm;
+volatile int commande_execution = 0;
 
 
 void handle_signal_commandes (int signum){
+    //printf("signal géré");
     signal_recu = 1;
-    exit(255);
+    exit (255);
+}
+
+void handle_signal(int signum){
+    kill(pid, signum);
 }
 
 
 int commande_externe(char **args){
     
+    struct sigaction sa;
+    //sigset_t mask;
+
+    //initialisation de la structure sigaction
+    memset(&sa, 0, sizeof(struct sigaction));  //réinitialisation de la structure
+
+    //on bloque SIGTERM
+    /*sigemptyset(&mask);
+    sigaddset(&mask, SIGTERM); //on ajoute SIGTERM au masque
+    sa.sa_flags = SA_NODEFER;
+
+    //on masque SIGTERM
+    sigprocmask(SIG_BLOCK, &mask, NULL);*/
+
+    sa.sa_handler = handle_signal;
+
+    if (sigaction(SIGTERM, &sa, NULL)==-1){
+        perror("sigaction error");
+    }
+    if (sigaction(SIGINT, &sa, NULL)==-1){
+        perror("sigaction error");
+    }
+
     if(args == NULL){
         return 1;
     }
 
     //creation d'un processus enfant pour executer la commande 
-    pid_t pid = fork();
+    pid = fork();
     if(pid < 0 ){
         perror("Erreur de fork");
         exit(1);
     } else if(pid == 0 ){
-        
         struct sigaction sa;
-        sigset_t mask;
-        sigemptyset(&mask);
             
         //initialisation de la structure sigaction
         memset(&sa, 0, sizeof(struct sigaction)); 
         sa.sa_handler = handle_signal_commandes;  //définition du gestionnaire de signal
 
-        if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1) {
-            perror("Erreur sigprocmask dans l'enfant");
-            exit(1);
-        }
-
         
         //on configure les gestionnaires pour tous les signaux qui interrompent la commande
         if (sigaction(SIGTERM, &sa, NULL) == -1){
-            perror("sigaction");
-            exit(1);
-        }
-
-        if (sigaction(SIGKILL, &sa, NULL) == -1){
-            perror("sigaction");
-            exit(1);
-        }
-
-        if (sigaction(SIGSTOP, &sa, NULL) == -1){
             perror("sigaction");
             exit(1);
         }
@@ -84,6 +98,16 @@ int commande_externe(char **args){
     }
 
     else {
+
+        /*if (flag_sigint){
+            kill(pid , SIGINT); 
+            flag_sigint = 0;
+        } 
+        else if (flag_sigterm){
+            kill(pid , SIGTERM);
+            flag_sigterm = 0;
+        } */
+
 
         int status; 
         waitpid(pid, &status, 0); //processus parent attend la fin de l'execution du processus enfant 
