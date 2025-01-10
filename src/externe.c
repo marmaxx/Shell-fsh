@@ -15,10 +15,10 @@
 #include "../include/ftype.h"
 #include "../include/signal_handlers.h"
 
-
-extern volatile int signal_recu;
-
 #define MAX_COM 64 
+
+volatile int signal_recu = 0;
+
 
 void handle_signal_commandes (int signum){
     signal_recu = 1;
@@ -40,19 +40,38 @@ int commande_externe(char **args){
     } else if(pid == 0 ){
         
         struct sigaction sa;
+        sigset_t mask;
+        sigemptyset(&mask);
             
         //initialisation de la structure sigaction
         memset(&sa, 0, sizeof(struct sigaction)); 
         sa.sa_handler = handle_signal_commandes;  //définition du gestionnaire de signal
+
+        if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1) {
+            perror("Erreur sigprocmask dans l'enfant");
+            exit(1);
+        }
+
         
-        //on configure les gestionnaires pour tous les signaux
-        for (int sig = 1; sig < _NSIG; sig++) {
-            if (sig != SIGKILL && sig != SIGSTOP) {
-                if (sigaction(sig, &sa, NULL) == -1) {
-                    //perror("Erreur sigaction");
-                    //exit(1);
-                }
-            }
+        //on configure les gestionnaires pour tous les signaux qui interrompent la commande
+        if (sigaction(SIGTERM, &sa, NULL) == -1){
+            perror("sigaction");
+            exit(1);
+        }
+
+        if (sigaction(SIGKILL, &sa, NULL) == -1){
+            perror("sigaction");
+            exit(1);
+        }
+
+        if (sigaction(SIGSTOP, &sa, NULL) == -1){
+            perror("sigaction");
+            exit(1);
+        }
+
+        if (sigaction(SIGINT, &sa, NULL) == -1){
+            perror("sigaction");
+            exit(1);
         }
         
         if(execvp(args[0], args) < 0){  //execution de la commande

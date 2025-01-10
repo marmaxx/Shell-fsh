@@ -26,13 +26,10 @@
 #include "../include/signal_handlers.h"
 
 
-volatile int signal_recu = 0;
-volatile int last_status = 0;
-
-void handle_signal (int signum){
+/*void handle_signal (int signum){
     signal_recu = 1;
     last_status = 255;
-}
+}*/
 
 int execute_commande_quelconque(char **args, int last_status){
     // Quitte la boucle si le user ecrit exit 
@@ -104,7 +101,6 @@ int main(int argc, char *argv[]){
 
     //initialisation de la structure sigaction
     memset(&sa, 0, sizeof(struct sigaction));  //réinitialisation de la structure
-    sa.sa_handler = handle_signal;  //définition du gestionnaire de signal
 
     //on bloque SIGTERM
     sigemptyset(&mask);
@@ -113,15 +109,16 @@ int main(int argc, char *argv[]){
     //on masque SIGTERM, tout en traitant les autres signaux
     sigprocmask(SIG_BLOCK, &mask, NULL);
 
-    //on configure les gestionnaires pour tous les signaux sauf SIGTERM
+   /* //on configure les gestionnaires pour tous les signaux sauf SIGTERM
     for (int sig = 1; sig < _NSIG; sig++) {
         if (sig != SIGKILL && sig != SIGSTOP) {
             if (sigaction(sig, &sa, NULL) == -1) {
                 //perror("Erreur sigaction");
             }
         }
-    }
+    }*/
 
+    int last_status = 0;
 
     while(1){
         /* Création du prompt */ 
