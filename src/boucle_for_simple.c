@@ -5,6 +5,8 @@
 #include <dirent.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
+#include <errno.h>
 
 #include "../include/externe.h"
 #include "../include/decoupeCmd.h"
@@ -119,11 +121,11 @@ int boucle_for_simple (char ** args, int last_status){
     int option_r = 0;
     int option_e = 0;
     int option_t = 0;
-    //int option_p = 0;
+    int option_p = 0;
     int current = 4;
     char *ext = "";
     char *type = "";
-    //char *max;
+    char *max = "1";
     int brace = 0;
     for (int i = 0; strcmp(args[i], "{") != 0; i++){
         if (strcmp(args[i], "-A") == 0){
@@ -156,7 +158,7 @@ int boucle_for_simple (char ** args, int last_status){
                 return 1;
             }
         }
-        /*else if (strcmp(args[i], "-p") == 0){
+        else if (strcmp(args[i], "-p") == 0){
             if (args[i+1] != NULL){
                 option_p = 1;
                 max = args[i+1];
@@ -166,7 +168,7 @@ int boucle_for_simple (char ** args, int last_status){
                 perror("il manque un argument à -p");
                 return 1;
             }
-        }*/
+        }
     }
     
     // Afficher les options activées
@@ -227,118 +229,220 @@ int boucle_for_simple (char ** args, int last_status){
         return 1;
     }
 
-    while ((entry = readdir(d)) != NULL){
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
-        //int index;
-        // On remplace le $F par le nom du fichier courant
-        char **args_with_file = malloc(MAX_COM * sizeof(char *));
-        char placeholder[3];
-        placeholder[0] = '$';
-        placeholder[1] = args[1][0];
-        placeholder[2] = '\0';
-        //strcat(placeholder, "$");
-        //strcat(placeholder, args[1]);
-        //printf("placeholder : %s\n\n", placeholder);
-        char file_name[MAX_COM];
-        remove_extension(entry->d_name, file_name);
-        //fprintf(stderr, "fic sans extension : %s\n", file_name);
-        for (int i = 0; i < size; i++) {
-            if (option_e) args_with_file[i] = replace_args(rep, commande[i], file_name, placeholder);
-            else args_with_file[i] = replace_args(rep, commande[i], entry->d_name, placeholder);
-        }
-        //fprintf(stderr, "size: %i", size);
-        args_with_file[size] = NULL; // Terminer le tableau par NULL
-        
-                
-        /*fprintf(stderr, "Affichage de args_with_file : \n");
-        for (int i = 0; i < size; i++) {
-            fprintf(stderr, "%s#", args_with_file[i]);
-        }
-        fprintf(stderr, "\n");*/
-
-         // Si -A n'est pas activé, ignorer les fichiers cachés
-        if (!option_A && entry->d_name[0] == '.') {
-            for (int i = 0; args_with_file[i] != NULL; i++) {
-                free(args_with_file[i]);
+    char *endptr;           
+    long conv = strtol(max, &endptr, 10); 
+    int max2 = (int)conv;
+    //printf("val max = %d", max2);
+    if (max2 < 0){
+        perror("L'argument de p doit être supérieur à 0");
+        free(commande);
+        return 1;
+    }
+    else if (option_p == 1 &&  max2 > 1 ){ 
+        char **list_of_fic = malloc(MAX_COM);
+        int i = 0;
+        while((entry = readdir(d)) != NULL){
+            if (strcmp(entry -> d_name, ".") != 0 && strcmp(entry -> d_name, "..") != 0) {
+                list_of_fic[i] = entry -> d_name;
+                i++;
             }
-            free(args_with_file);
-            continue;
         }
+        int size_list = i; 
+        //printf("taille list = %d", size_list);
+        while(size_list > 0){
+            int active_children = 0;
 
-        // Si -e est activé, vérifier l'extension
-        if (option_e && !has_extension(entry->d_name, ext)) {
-            for (int i = 0; args_with_file[i] != NULL; i++) {
-                free(args_with_file[i]);
+            // Création de fils en parallèle
+            int current_index = 0;
+            pid_t pids [max2];
+            int results[max2];  // Pour stocker les résultats des fils
+            int max_result = INT_MIN;
+            for (int j = 0; j < max2 && size_list > 0; j++) {
+                //printf("dans la boucle");
+                pid_t pid = fork();
+                if (pid == 0) {
+                    //printf("Fils créé avec succès (PID : %d)\n", getpid());
+                    active_children++;
+                    //printf("list of fic : %s \n\n", list_of_fic[current_index]);
+                    int new_result = exec_interieur_for(entry,list_of_fic[current_index], last_status,option_p,option_r,option_e,option_t,option_A, size,ext,type,rep,commande,args);
+                    //printf("Fils PID %d traite une tâche...\n", getpid());
+                    printf("new result : %d\n\n", new_result);
+                    exit(new_result);
+                } else if (pid > 0) {
+                    pids[j] = pid;
+                    active_children++;
+                    current_index++;
+                    size_list--;
+                } else {
+                    perror("Erreur lors du fork");
+                    exit(EXIT_FAILURE);
+                }
             }
-            free(args_with_file);
-            continue;
-        }
+                // Attendre tous les fils et récupérer leurs résultats
+                for (int i = 0; i < max2; i++) {
+                    int status;
+                    pid_t terminated_pid = waitpid(pids[i], &status, 0);  // Attendre chaque processus fils
 
-        // Si -r est activé, vérifier si le fichier est un répertoire
-        if (option_r == 1 && entry->d_type == DT_DIR){
-            //fprintf(stderr, "ancien rep: %s\n", rep);
-            char * new_rep = malloc(strlen(rep) + entry->d_reclen + 1);
-            new_rep[0] = '\0';
-            strcat(new_rep, rep);
-            strcat(new_rep, "/");
-            if (option_e) strcat(new_rep, file_name);
-            else strcat(new_rep, entry->d_name);
-            //fprintf(stderr, "nouveau rep : %s\n", new_rep);
-            char **args_with_rep = malloc(MAX_COM * sizeof(char *));
-            int i;
-            for (i = 0; args[i] !=NULL; i++) {
-                args_with_rep[i] = replace_args(NULL, args[i], new_rep, rep);
-            }
-            free(new_rep);
-            //fprintf(stderr, "size: %i", size);
-            args_with_rep[i] = NULL; // Terminer le tableau par NULL
-            /*fprintf(stderr, "Affichage de args_with_rep : \n");
-            for (int i = 0; args[i] != NULL; i++) {
-                fprintf(stderr, "%s#", args_with_rep[i]);
-            }
-            fprintf(stderr, "\n");*/
-            last_status = boucle_for_simple(args_with_rep, last_status);
-            for (int i = 0; args_with_rep[i] != NULL; i++) {
-                free(args_with_rep[i]);
-            }
-            free(args_with_rep);
-        }
+                    if (terminated_pid > 0) {
+                        if (WIFEXITED(status)) {
+                            int result = WEXITSTATUS(status);  // Récupérer le code de retour du fils
+                            results[i] = result;  // Sauvegarder dans le tableau des résultats
 
-        // Si -t est activé, vérifier le type de fichier
-        if (option_t && !matches_type(entry, type)) {
-            for (int i = 0; args_with_file[i] != NULL; i++) {
-                free(args_with_file[i]);
+                            // Comparer et mettre à jour le résultat maximal
+                            if (result > max_result) {
+                                max_result = result;
+                            }
+
+                            printf("Fils %d terminé avec résultat %d. Résultat maximal actuel : %d\n", i, result, max_result);
+                        } else {
+                            printf("Le fils %d n'a pas terminé normalement.\n", i);
+                        }
+                    } else {
+                        perror("Erreur lors de l'attente du processus fils");
+                    }
             }
-            free(args_with_file);
-            continue;
+            //printf("nb activ children : %d",active_children);
+            while (active_children > 0) {
+                pid_t terminated_pid = wait(NULL);
+                if (terminated_pid > 0) {
+                    active_children--;
+                }
+            }
         }
-
-
-        char commande_for [MAX_COM];
-        concatenate_args(args_with_file, commande_for);
-        //fprintf(stderr, "commande : %s\n", commande_for);
-        if (is_structured(commande_for)){
-            //fprintf(stderr, "struct\n");
-            int *tmp = execute_structured_command(commande_for, last_status);
-            if (tmp[1] > result) result = tmp[1];
-            free(tmp);
+        /* Libérer la mémoire allouée
+            for (int j = 0; j < i; j++) {
+                free(list_of_fic[j]);
+            }
+            free(list_of_fic);
+        */      
+    } 
+    
+    
+    else {
+        //printf("ching");
+        while ((entry = readdir(d)) != NULL){
+        //printf("chang");
+        int new_result =  exec_interieur_for(entry,entry -> d_name, last_status,option_p,option_r, option_e,option_t,option_A,size,ext,type,rep,commande,args);
+        if(result < new_result) result = new_result;
         }
-        // Exécuter la commande avec les arguments modifiés
-        else{ 
-            int tmp = execute_commande_quelconque(args_with_file, last_status);
-            if (tmp > result) result = tmp;
-        }
-        // Libérer la mémoire allouée pour args_with_file
-        for (int i = 0; args_with_file[i] != NULL; i++) {
-            free(args_with_file[i]);
-        }
-        free(args_with_file);
     }
 
     free(commande);
     closedir(d);
+    printf("result final = %d \n\n", result);
+    return result;
+}
+
+
+int exec_interieur_for(struct dirent *entry, char *name, int last_status,int option_p, int option_r, int option_e, int option_t, int option_A, int size, char *ext, char *type, char *rep, char **commande, char **args){
+    //fprintf(stderr, "name : %s\n\n", name);
+    int result = 0; 
+    if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
+        return 0;
+    }
+    //int index;
+    // On remplace le $F par le nom du fichier courant
+    char **args_with_file = malloc(MAX_COM * sizeof(char *));
+    char placeholder[3];
+    placeholder[0] = '$';
+    placeholder[1] = args[1][0];
+    placeholder[2] = '\0';
+    //strcat(placeholder, "$");
+    //strcat(placeholder, args[1]);
+    //printf("placeholder : %s\n\n", placeholder);
+    char file_name[MAX_COM];
+    remove_extension(name, file_name);
+    //fprintf(stderr, "fic sans extension : %s\n", file_name);
+    for (int i = 0; i < size; i++) {
+        if (option_e) args_with_file[i] = replace_args(rep, commande[i], file_name, placeholder);
+        else args_with_file[i] = replace_args(rep, commande[i], name, placeholder);
+    }
+    //fprintf(stderr, "size: %i", size);
+    args_with_file[size] = NULL; // Terminer le tableau par NULL
     
+            
+    /*fprintf(stderr, "Affichage de args_with_file : \n");
+    for (int i = 0; i < size; i++) {
+        fprintf(stderr, "%s#", args_with_file[i]);
+    }
+    fprintf(stderr, "\n");*/
+
+    // Si -A n'est pas activé, ignorer les fichiers cachés
+    if (!option_A && name[0] == '.') {
+        for (int i = 0; args_with_file[i] != NULL; i++) {
+            free(args_with_file[i]);
+        }
+        free(args_with_file);
+        return 0;
+    }
+
+    // Si -e est activé, vérifier l'extension
+    if (option_e && !has_extension(name, ext)) {
+        for (int i = 0; args_with_file[i] != NULL; i++) {
+            free(args_with_file[i]);
+        }
+        free(args_with_file);
+        return 0;
+    }
+
+    // Si -r est activé, vérifier si le fichier est un répertoire
+    if (option_r == 1 && entry->d_type == DT_DIR){
+        //fprintf(stderr, "ancien rep: %s\n", rep);
+        char * new_rep = malloc(strlen(rep) + entry->d_reclen + 1);
+        new_rep[0] = '\0';
+        strcat(new_rep, rep);
+        strcat(new_rep, "/");
+        if (option_e) strcat(new_rep, file_name);
+        else strcat(new_rep, entry->d_name);
+        //fprintf(stderr, "nouveau rep : %s\n", new_rep);
+        char **args_with_rep = malloc(MAX_COM * sizeof(char *));
+        int i;
+        for (i = 0; args[i] !=NULL; i++) {
+            args_with_rep[i] = replace_args(NULL, args[i], new_rep, rep);
+        }
+        free(new_rep);
+        //fprintf(stderr, "size: %i", size);
+        args_with_rep[i] = NULL; // Terminer le tableau par NULL
+        /*fprintf(stderr, "Affichage de args_with_rep : \n");
+        for (int i = 0; args[i] != NULL; i++) {
+            fprintf(stderr, "%s#", args_with_rep[i]);
+        }
+        fprintf(stderr, "\n");*/
+        last_status = boucle_for_simple(args_with_rep, last_status);
+        for (int i = 0; args_with_rep[i] != NULL; i++) {
+            free(args_with_rep[i]);
+        }
+        free(args_with_rep);
+    }
+
+    // Si -t est activé, vérifier le type de fichier
+    if (option_t && !matches_type(entry, type)) {
+        for (int i = 0; args_with_file[i] != NULL; i++) {
+            free(args_with_file[i]);
+        }
+        free(args_with_file);
+        return 0;
+    }
+
+    char commande_for [MAX_COM];
+    concatenate_args(args_with_file, commande_for);
+    //fprintf(stderr, "commande : %s\n", commande_for);
+    if (is_structured(commande_for)){
+        //fprintf(stderr, "struct\n");
+        int *tmp = execute_structured_command(commande_for, last_status);
+        if (tmp[1] > result) result = tmp[1];
+        free(tmp);
+    }
+    // Exécuter la commande avec les arguments modifiés
+    else{ 
+        int tmp = execute_commande_quelconque(args_with_file, last_status);
+        if (tmp > result) result = tmp;
+    }
+
+    // Libérer la mémoire allouée pour args_with_file
+    for (int i = 0; args_with_file[i] != NULL; i++) {
+        free(args_with_file[i]);
+    }
+    free(args_with_file); 
     return result;
 }
