@@ -266,11 +266,11 @@ int boucle_for_simple (char ** args, int last_status){
                     //printf("list of fic : %s \n\n", list_of_fic[current_index]);
                     int new_result = exec_interieur_for(entry,list_of_fic[current_index], last_status,option_p,option_r,option_e,option_t,option_A, size,ext,type,rep,commande,args);
                     //printf("Fils PID %d traite une tâche...\n", getpid());
-                    printf("new result : %d\n\n", new_result);
+                    //printf("new result : %d\n\n", new_result);
                     exit(new_result);
                 } else if (pid > 0) {
                     pids[j] = pid;
-                    active_children++;
+                    //active_children++;
                     current_index++;
                     size_list--;
                 } else {
@@ -285,15 +285,15 @@ int boucle_for_simple (char ** args, int last_status){
 
                     if (terminated_pid > 0) {
                         if (WIFEXITED(status)) {
-                            int result = WEXITSTATUS(status);  // Récupérer le code de retour du fils
-                            results[i] = result;  // Sauvegarder dans le tableau des résultats
+                            int stat = WEXITSTATUS(status);  // Récupérer le code de retour du fils
+                            results[i] = stat;  // Sauvegarder dans le tableau des résultats
 
                             // Comparer et mettre à jour le résultat maximal
-                            if (result > max_result) {
-                                max_result = result;
+                            if (stat > max_result) {
+                                max_result = stat; 
                             }
 
-                            printf("Fils %d terminé avec résultat %d. Résultat maximal actuel : %d\n", i, result, max_result);
+                            //printf("Fils %d terminé avec résultat %d. Résultat maximal actuel : %d\n", i, result, max_result);
                         } else {
                             printf("Le fils %d n'a pas terminé normalement.\n", i);
                         }
@@ -307,6 +307,10 @@ int boucle_for_simple (char ** args, int last_status){
                 if (terminated_pid > 0) {
                     active_children--;
                 }
+            }
+
+            if (max_result > result){
+                result = max_result;
             }
         }
         /* Libérer la mémoire allouée
@@ -329,7 +333,7 @@ int boucle_for_simple (char ** args, int last_status){
 
     free(commande);
     closedir(d);
-    printf("result final = %d \n\n", result);
+    //printf("result final = %d \n\n", result);
     return result;
 }
 
