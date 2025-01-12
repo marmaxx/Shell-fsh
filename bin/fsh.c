@@ -16,7 +16,7 @@
 #include "../include/pwd.h"
 #include "../include/decoupeCmd.h"
 #include "../include/exit.h"
-#include "../include/boucle_for_simple.h"
+#include "../include/boucle_for.h"
 #include "../include/cd.h"
 #include "../include/ftype.h"
 #include "../include/commande_structuree.h"
