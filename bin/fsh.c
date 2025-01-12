@@ -24,8 +24,6 @@
 #include "../include/redirection.h"
 #include "../include/pipe.h"
 
-volatile pid_t pid_fils = 0;
-
 
 int execute_commande_quelconque(char **args, int last_status){
     // Quitte la boucle si le user ecrit exit 
@@ -92,9 +90,9 @@ int main(int argc, char *argv[]){
     char *command; 
     rl_outstream = stderr;
     
-   // Struct pour d=C3=A9finir le comportement du signal
+   // Struct pour definir le comportement du signal
     struct sigaction sa;
-    sa.sa_handler = SIG_IGN;
+    sa.sa_handler = SIG_IGN; //on ignore les signaux en question
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
 

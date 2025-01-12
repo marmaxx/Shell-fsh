@@ -137,7 +137,7 @@ int *execute_structured_command(const char *command, int last_status){
         
         free(new_args);
         
-        if (sigint_recu) break;
+        if (sigint_recu) break; //si SIGINT est reçu, on sort de la boucle
     }
 
     for (int i = 0; commande_decoupee[i] != NULL; i++) {

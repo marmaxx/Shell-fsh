@@ -16,7 +16,6 @@
 
 #define MAX_COM 64 
 
-volatile extern pid_t pid_fils;
 volatile extern int sigint_recu;
 volatile extern int sigterm_recu;
 
@@ -75,7 +74,7 @@ int commande_externe(char **args){
             if (sig == SIGINT ) sigint_recu = 1;
             else if (sig == SIGTERM) sigterm_recu = 1;
             //printf("Processus enfant tué par le signal %d\n", signal_recu);
-            return 255;  // Échec dans le parent
+            return 255; //la valeur de retour est 255
         }
         else{
             return 1; // Indique un échec dans le parent

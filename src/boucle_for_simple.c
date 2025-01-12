@@ -16,6 +16,8 @@
 
 #define MAX_COM 1024 
 
+volatile extern int sigint_recu;
+
 char *replace_args(const char *rep, const char *arg, const char *file_name, char * pl) {
     const char *placeholder = pl;
     char *result;
@@ -258,6 +260,7 @@ int boucle_for_simple (char ** args, int last_status){
             int results[max2];  // Pour stocker les résultats des fils
             int max_result = INT_MIN;
             for (int j = 0; j < max2 && size_list > 0; j++) {
+                if (sigint_recu) break; //si SIGINT est recu, on sort de la boucle
                 //printf("dans la boucle");
                 pid_t pid = fork();
                 if (pid == 0) {
@@ -277,9 +280,12 @@ int boucle_for_simple (char ** args, int last_status){
                     perror("Erreur lors du fork");
                     exit(EXIT_FAILURE);
                 }
+
+                
             }
                 // Attendre tous les fils et récupérer leurs résultats
                 for (int i = 0; i < max2; i++) {
+                    if (sigint_recu) break; //si SIGINT est recu, on sort de la boucle
                     int status;
                     pid_t terminated_pid = waitpid(pids[i], &status, 0);  // Attendre chaque processus fils
 
@@ -300,6 +306,8 @@ int boucle_for_simple (char ** args, int last_status){
                     } else {
                         perror("Erreur lors de l'attente du processus fils");
                     }
+
+                    
             }
             //printf("nb activ children : %d",active_children);
             while (active_children > 0) {
@@ -325,10 +333,14 @@ int boucle_for_simple (char ** args, int last_status){
     else {
         //printf("ching");
         while ((entry = readdir(d)) != NULL){
-        //printf("chang");
-        int new_result =  exec_interieur_for(entry,entry -> d_name, last_status,option_p,option_r, option_e,option_t,option_A,size,ext,type,rep,commande,args);
-        if(result < new_result) result = new_result;
+            //printf("chang");
+            int new_result =  exec_interieur_for(entry,entry -> d_name, last_status,option_p,option_r, option_e,option_t,option_A,size,ext,type,rep,commande,args);
+            
+            if(result < new_result) result = new_result;
+            
+            if (sigint_recu) break; //si SIGINT est recu, on sort de la boucle
         }
+        
     }
 
     free(commande);
