@@ -14,7 +14,9 @@
 #define CYAN "\001\033[36m\002"   
 #define RESET "\001\033[00m\002"  // Retour à la couleur normale
 
-volatile sig_atomic_t signal_recu = 0;
+volatile int sigint_recu = 0;
+volatile int sigterm_recu = 0;
+
 
 
 // Fonction pour créer un prompt tronqué
@@ -28,9 +30,13 @@ void create_prompt(int last_status, char *prompt, size_t size) {
     
     char status[12];
     
-    if (signal_recu){ // Si un signal est reçu, on écrit SIG comme statut
+    if (sigterm_recu){ // Si un signal est reçu, on écrit SIG comme statut
         snprintf (status, sizeof(status), "SIG");
-        signal_recu = 0;
+        sigterm_recu = 0;
+    } 
+    else if (sigint_recu){ 
+        snprintf (status, sizeof(status), "SIG");
+        sigint_recu = 0;
     } 
     
     // Format de retour de la commande en focntion du dernier statut

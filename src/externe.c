@@ -18,7 +18,8 @@
 #define MAX_COM 64 
 
 volatile extern pid_t pid_fils;
-volatile extern sig_atomic_t signal_recu;
+volatile extern int sigint_recu;
+volatile extern int sigterm_recu;
 
 
 int commande_externe(char **args){
@@ -66,12 +67,14 @@ int commande_externe(char **args){
         waitpid(pid, &status, 0); //processus parent attend la fin de l'execution du processus enfant 
         
         if (WIFEXITED(status)){
+            sigterm_recu = 0;
             return WEXITSTATUS(status);
         } 
         else if (WIFSIGNALED(status)) {
             //si le processus enfant a été tué par un signal, on récupère ce signal
             int sig = WTERMSIG(status);
-            if (sig == SIGINT || sig == SIGTERM) signal_recu = 1;
+            if (sig == SIGINT ) sigint_recu = 1;
+            else if (sig == SIGTERM) sigterm_recu = 1;
             //printf("Processus enfant tué par le signal %d\n", signal_recu);
             return 255;  // Échec dans le parent
         }

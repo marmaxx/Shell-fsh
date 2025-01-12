@@ -12,6 +12,8 @@
 
 #define MAX_COM 64
 
+volatile extern int sigint_recu;
+
 int is_structured(const char *command) {
     int inside_braces = 1;
 
@@ -125,7 +127,18 @@ int *execute_structured_command(const char *command, int last_status){
         else{
             result[1] = execute_commande_quelconque(new_args, last_status);
         }
+        
         free(new_args);
+        
+        if (sigint_recu){ 
+            for (int j = 0; commande_decoupee[j] != NULL; j++){
+                free(commande_decoupee[j]);
+                commande_decoupee[j] = NULL;
+            }
+            free(commande_decoupee);
+           
+            return 255;
+        }
     }
 
     for (int i = 0; commande_decoupee[i] != NULL; i++) {
