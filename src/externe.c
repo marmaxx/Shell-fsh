@@ -59,8 +59,6 @@ int commande_externe(char **args){
 
     else {
 
-        pid_fils = pid;
-       
         int status; 
         waitpid(pid, &status, 0); //processus parent attend la fin de l'execution du processus enfant 
         
