@@ -130,15 +130,7 @@ int *execute_structured_command(const char *command, int last_status){
         
         free(new_args);
         
-        if (sigint_recu){ 
-            for (int j = 0; commande_decoupee[j] != NULL; j++){
-                free(commande_decoupee[j]);
-                commande_decoupee[j] = NULL;
-            }
-            free(commande_decoupee);
-           
-            return 255;
-        }
+        if (sigint_recu) break;
     }
 
     for (int i = 0; commande_decoupee[i] != NULL; i++) {
