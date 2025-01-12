@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/exit.h"
+#include "../include/src/exit.h"
 
 
 int func_exit(char *arg, int last_status){

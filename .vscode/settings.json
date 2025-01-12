@@ -5,6 +5,7 @@
         "decoupecmd.h": "c",
         "boucle_for.h": "c",
         "pipe.h": "c",
-        "redirection.h": "c"
+        "redirection.h": "c",
+        "prompt.h": "c"
     }
 }

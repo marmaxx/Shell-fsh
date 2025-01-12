@@ -2,13 +2,13 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "../include/fsh.h"
-#include "../include/decoupeCmd.h"
-#include "../include/externe.h"
-#include "../include/commande_structuree.h"
-#include "../include/boucle_for.h"
-#include "../include/redirection.h"
-#include "../include/if_else.h"
+#include "../include/bin/fsh.h"
+#include "../include/src/decoupeCmd.h"
+#include "../include/src/externe.h"
+#include "../include/src/commande_structuree.h"
+#include "../include/src/boucle_for.h"
+#include "../include/src/redirection.h"
+#include "../include/src/if_else.h"
 
 #define MAX_COM 1024
 

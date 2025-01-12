@@ -9,18 +9,19 @@
 #include <limits.h>
 #include <signal.h>
 
-#include "../include/externe.h"
-#include "../include/prompt.h"
-#include "../include/pwd.h"
-#include "../include/decoupeCmd.h"
-#include "../include/exit.h"
-#include "../include/boucle_for.h"
-#include "../include/cd.h"
-#include "../include/ftype.h"
-#include "../include/commande_structuree.h"
-#include "../include/if_else.h"
-#include "../include/redirection.h"
-#include "../include/pipe.h"
+#include "../include/src/externe.h"
+#include "../include/src/prompt.h"
+#include "../include/src/pwd.h"
+#include "../include/src/decoupeCmd.h"
+#include "../include/src/exit.h"
+#include "../include/src/boucle_for.h"
+#include "../include/src/cd.h"
+#include "../include/src/ftype.h"
+#include "../include/src/commande_structuree.h"
+#include "../include/src/if_else.h"
+#include "../include/src/redirection.h"
+#include "../include/src/pipe.h"
+#include "../include/bin/fsh.h"
 
 
 int execute_commande_quelconque(char **args, int last_status){

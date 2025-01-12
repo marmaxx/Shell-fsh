@@ -4,7 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "../include/decoupeCmd.h"
+#include "../include/src/decoupeCmd.h"
 
 #define MAX_COM 64  
 
