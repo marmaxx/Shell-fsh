@@ -3,5 +3,6 @@
 
 int execute_commande_quelconque(char **args, int last_status);
 int main();
+void ignore_SIGTERM (int signum);
 
 #endif

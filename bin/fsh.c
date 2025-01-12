@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE 700
+
 # include <stdlib.h> 
 # include <stdio.h> 
 #include <string.h>
@@ -7,6 +9,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <limits.h>
+#include <signal.h>
 
 #include "../include/externe.h"
 #include "../include/prompt.h"
@@ -20,6 +23,9 @@
 #include "../include/if_else.h"
 #include "../include/redirection.h"
 #include "../include/pipe.h"
+
+volatile pid_t pid_fils = 0;
+
 
 int execute_commande_quelconque(char **args, int last_status){
     // Quitte la boucle si le user ecrit exit 
@@ -84,18 +90,40 @@ int execute_commande_quelconque(char **args, int last_status){
 
 int main(int argc, char *argv[]){
     char *command; 
-    int last_status = 0;
     rl_outstream = stderr;
+    
+   // Struct pour d=C3=A9finir le comportement du signal
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
+    }
+
+    if (sigaction(SIGTERM, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
+    }
+
+
+    int last_status = 0;
 
     while(1){
         /* Création du prompt */ 
+
         char prompt[PATH_MAX + 50];
         create_prompt(last_status, prompt, sizeof(prompt));
         fprintf(stderr, "%s", prompt);
         fflush(stderr);
 
+        
+
         // Lit la commande du user 
         command = readline("$ "); 
+       
 
         if(command == NULL){
             //printf("on sort de la boucle while");
@@ -177,7 +205,11 @@ int main(int argc, char *argv[]){
             free(command);
             free(args);
         }
+       
+       
+
     }
+
     //fprintf(stderr, "%i", last_status);
     
     return last_status;
