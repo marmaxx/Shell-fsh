@@ -24,25 +24,8 @@
 #include "../include/redirection.h"
 #include "../include/pipe.h"
 
-volatile extern int commande_execution;
 volatile pid_t pid_fils = 0;
-volatile sig_atomic_t flag_sigint = 0;
-volatile sig_atomic_t flag_sigterm = 0;
-volatile extern sig_atomic_t signal_recu;
 
-
-void handle_signal_fsh(int signum){
-    if (pid_fils == 0 && signum == SIGINT){
-        printf("pas de commande");
-        exit(1);
-    }
-    else if (pid_fils > 0){
-        signal_recu = 1;
-        printf("commande");
-    }//kill(pid_fils, SIGTERM);
-    //printf("parent recu");
-
-}
 
 int execute_commande_quelconque(char **args, int last_status){
     // Quitte la boucle si le user ecrit exit 
@@ -109,29 +92,22 @@ int main(int argc, char *argv[]){
     char *command; 
     rl_outstream = stderr;
     
+   // Struct pour d=C3=A9finir le comportement du signal
     struct sigaction sa;
-    //sigset_t mask;
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
 
-    //initialisation de la structure sigaction
-    memset(&sa, 0, sizeof(struct sigaction));  //réinitialisation de la structure
-
-    //on bloque SIGTERM
-    /*sigemptyset(&mask);
-    sigaddset(&mask, SIGTERM); //on ajoute SIGTERM au masque
-    sa.sa_flags = SA_NODEFER;
-
-    //on masque SIGTERM
-    sigprocmask(SIG_BLOCK, &mask, NULL);*/
-
-    sa.sa_handler = handle_signal_fsh;
-
-    if (sigaction(SIGTERM, &sa, NULL)==-1){
-        perror("sigaction error");
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
     }
 
-    if (sigaction(SIGINT, &sa, NULL)==-1){
-        perror("sigaction error");
+    if (sigaction(SIGTERM, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
     }
+
 
     int last_status = 0;
 

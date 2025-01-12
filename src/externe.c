@@ -17,18 +17,8 @@
 
 #define MAX_COM 64 
 
-volatile extern sig_atomic_t signal_recu;
 volatile extern pid_t pid_fils;
-volatile extern sig_atomic_t flag_sigint;
-volatile extern sig_atomic_t flag_sigterm;
-volatile int commande_execution = 0;
-
-
-void handle_signal_commandes (int signum){
-    //printf("signal fils");
-    //signal_recu = 1;
-    exit (255);
-}
+volatile extern sig_atomic_t signal_recu;
 
 
 int commande_externe(char **args){
@@ -44,24 +34,20 @@ int commande_externe(char **args){
         exit(1);
     } else if(pid == 0 ){  
 
-        //printf("commande en cours d'exécution\n");
-
         struct sigaction sa;
-            
-        //initialisation de la structure sigaction
-        memset(&sa, 0, sizeof(struct sigaction)); 
-        sa.sa_handler = handle_signal_commandes;  //définition du gestionnaire de signal   
-        
-        //on configure les gestionnaires pour tous les signaux qui interrompent la commande
-        if (sigaction(SIGTERM, &sa, NULL) == -1){
+        sa.sa_handler = SIG_DFL; // Comportement par defaut
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+
+        if (sigaction(SIGTERM, &sa, NULL) == -1) {
             perror("sigaction");
-            exit(1);
+            exit(EXIT_FAILURE);
+        }
+        if (sigaction(SIGINT, &sa, NULL) == -1) {
+            perror("sigaction");
+            exit(EXIT_FAILURE);
         }
 
-        if (sigaction(SIGINT, &sa, NULL) == -1){
-            perror("sigaction");
-            exit(1);
-        }    
 
         if(execvp(args[0], args) < 0){  //execution de la commande
             //printf("#%s#\n", args[0]);
@@ -74,14 +60,6 @@ int commande_externe(char **args){
 
     else {
 
-        /*if (flag_sigint){
-            kill(pid , SIGINT); 
-            flag_sigint = 0;
-        } 
-        else if (flag_sigterm){
-            kill(pid , SIGTERM);
-            flag_sigterm = 0;
-        } */
         pid_fils = pid;
        
         int status; 
@@ -90,6 +68,13 @@ int commande_externe(char **args){
         if (WIFEXITED(status)){
             return WEXITSTATUS(status);
         } 
+        else if (WIFSIGNALED(status)) {
+            //si le processus enfant a été tué par un signal, on récupère ce signal
+            int sig = WTERMSIG(status);
+            if (sig == SIGINT || sig == SIGTERM) signal_recu = 1;
+            //printf("Processus enfant tué par le signal %d\n", signal_recu);
+            return 255;  // Échec dans le parent
+        }
         else{
             return 1; // Indique un échec dans le parent
         }
