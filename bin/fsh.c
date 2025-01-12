@@ -60,7 +60,7 @@ int execute_commande_quelconque(char **args, int last_status){
 
     /* Gère le cas de la commande for */ 
     else if (strcmp(args[0], "for") == 0){
-        last_status = boucle_for_simple(args, last_status);
+        last_status = boucle_for(args, last_status);
     }
 
     else if (strcmp(args[0], "cd") == 0){
