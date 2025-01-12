@@ -13,7 +13,6 @@
 #include "../include/prompt.h"
 #include "../include/decoupeCmd.h"
 #include "../include/ftype.h"
-#include "../include/signal_handlers.h"
 
 #define MAX_COM 64 
 
