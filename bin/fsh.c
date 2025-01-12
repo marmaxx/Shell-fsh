@@ -141,12 +141,12 @@ int main(int argc, char *argv[]){
         /* Execution d'une commande avec pipes*/
         if (is_Pipe_Command(command)){
             if (decoupe_pipe_commande(command)){
-                //printf("youpi");
+                //printf("decouopr_pipe valide ");
                 last_status = execute_pipe(command, last_status);
                 free(command);
             }
             else {
-                //printf("bouh");
+                //printf("pb de decoupe_pipe");
                 last_status = 1;
                 free(command);
             }
@@ -194,11 +194,6 @@ int main(int argc, char *argv[]){
             else{
                 last_status = execute_commande_quelconque(args, last_status);
             } 
-
-            /* clean la memeoire */ 
-            /*for (int i = 0; args[i] != NULL; i++) {
-                free(args[i]);
-            }*/
             free(command);
             free(args);
         }

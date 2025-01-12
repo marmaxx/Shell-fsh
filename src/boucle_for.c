@@ -119,7 +119,10 @@ void concatenate_args(char *args[], char *result) {
     }
 }
 
+
+/* Fonction qui execute la commande structurée for .*/
 int boucle_for (char ** args, int last_status){
+    /* Si une option est à 1 => option présente dans la commande */
     int option_A = 0;
     int option_r = 0;
     int option_e = 0;
@@ -131,6 +134,7 @@ int boucle_for (char ** args, int last_status){
     char *max = "1";
     int brace = 0;
     for (int i = 0; strcmp(args[i], "{") != 0; i++){
+        /* Check s'il y a des options . */
         if (strcmp(args[i], "-A") == 0){
             option_A = 1;
             current++;
@@ -232,18 +236,21 @@ int boucle_for (char ** args, int last_status){
         return 1;
     }
 
+    /* Conversion du nombre allant avec -p en int */
     char *endptr;           
     long conv = strtol(max, &endptr, 10); 
     int max2 = (int)conv;
     //printf("val max = %d", max2);
+
     if (max2 < 0){
         perror("L'argument de p doit être supérieur à 0");
         free(commande);
         return 1;
     }
     else if (option_p == 1 &&  max2 > 1 ){ 
-        char **list_of_fic = malloc(MAX_COM);
+        char **list_of_fic = malloc(MAX_COM); //Liste pour stocker les nom des éléments du rep 
         int i = 0;
+        /* Ajout de tout les nom sauf . et .. */
         while((entry = readdir(d)) != NULL){
             if (strcmp(entry -> d_name, ".") != 0 && strcmp(entry -> d_name, "..") != 0) {
                 list_of_fic[i] = entry -> d_name;
@@ -265,16 +272,16 @@ int boucle_for (char ** args, int last_status){
                 //printf("dans la boucle");
                 pid_t pid = fork();
                 if (pid == 0) {
-                    //printf("Fils créé avec succès (PID : %d)\n", getpid());
                     active_children++;
-                    //printf("list of fic : %s \n\n", list_of_fic[current_index]);
+                    /* Execution de la commande à passée dans le for */
                     int new_result = exec_interieur_for(entry,list_of_fic[current_index], last_status,option_p,option_r,option_e,option_t,option_A, size,ext,type,rep,commande,args);
+                    //printf("Fils créé avec succès (PID : %d)\n", getpid());
+                    //printf("list of fic : %s \n\n", list_of_fic[current_index]);
                     //printf("Fils PID %d traite une tâche...\n", getpid());
                     //printf("new result : %d\n\n", new_result);
                     exit(new_result);
                 } else if (pid > 0) {
                     pids[j] = pid;
-                    //active_children++;
                     current_index++;
                     size_list--;
                 } else {
@@ -284,7 +291,7 @@ int boucle_for (char ** args, int last_status){
 
                 
             }
-                // Attendre tous les fils et récupérer leurs résultats
+                /* Attendre tous les fils et récupérer leurs résultats */
                 for (int i = 0; i < max2; i++) {
                     if (sigint_recu) break; //si SIGINT est recu, on sort de la boucle
                     int status;
@@ -292,10 +299,10 @@ int boucle_for (char ** args, int last_status){
 
                     if (terminated_pid > 0) {
                         if (WIFEXITED(status)) {
-                            int stat = WEXITSTATUS(status);  // Récupérer le code de retour du fils
-                            results[i] = stat;  // Sauvegarder dans le tableau des résultats
+                            int stat = WEXITSTATUS(status);  // Récupéreration du code de retour du fils
+                            results[i] = stat;  // Ajout dans le tab de résultat
 
-                            // Comparer et mettre à jour le résultat maximal
+                            // Maj du résultat max 
                             if (stat > max_result) {
                                 max_result = stat; 
                             }
@@ -321,20 +328,12 @@ int boucle_for (char ** args, int last_status){
             if (max_result > result){
                 result = max_result;
             }
-        }
-        /* Libérer la mémoire allouée
-            for (int j = 0; j < i; j++) {
-                free(list_of_fic[j]);
-            }
-            free(list_of_fic);
-        */      
+        }      
     } 
     
-    
+    /* Execution de la boucle for sans l'option -p ou avecv -p 1 */
     else {
-        //printf("ching");
         while ((entry = readdir(d)) != NULL){
-            //printf("chang");
             int new_result =  exec_interieur_for(entry,entry -> d_name, last_status,option_p,option_r, option_e,option_t,option_A,size,ext,type,rep,commande,args);
             
             if(result < new_result) result = new_result;
@@ -351,13 +350,13 @@ int boucle_for (char ** args, int last_status){
 }
 
 
+/* Fonction qui execute la commande présente dans le for .*/
 int exec_interieur_for(struct dirent *entry, char *name, int last_status,int option_p, int option_r, int option_e, int option_t, int option_A, int size, char *ext, char *type, char *rep, char **commande, char **args){
     //fprintf(stderr, "name : %s\n\n", name);
     int result = 0; 
     if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
         return 0;
     }
-    //int index;
     // On remplace le $F par le nom du fichier courant
     char **args_with_file = malloc(MAX_COM * sizeof(char *));
     char placeholder[3];

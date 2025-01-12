@@ -10,6 +10,9 @@
 #include "../include/bin/fsh.h"
 #include "../include/src/redirection.h"
 
+
+/* Fonction qui permet de voir si une commande est une redirection simple
+    ou à l'intérieur de commandes structurée . */
 int is_redirection(const char *command) {
     int inside_braces = 0;
 
@@ -20,14 +23,16 @@ int is_redirection(const char *command) {
             inside_braces--;
         } else if (command[i] == '>' || command[i] == '>') {
             if (inside_braces != 0) {
-                return 1; // Un point-virgule trouvé à l'intérieur des accolades
+                return 1; 
             }
         }
     }
 
-    return is_simple_redirection(command); // Aucun point-virgule trouvé à l'intérieur des accolades
+    return is_simple_redirection(command); // Une redirection à été trouvé
 }
 
+
+/* Fonction qui permet de vérifier que la syntaxe de la redirection soit bonne. */
 int is_simple_redirection(const char *cmd){
     if(cmd == NULL || strlen(cmd) < 4){
         return 1;
@@ -77,6 +82,8 @@ int is_simple_redirection(const char *cmd){
     return 0;
 }
 
+
+/* Fonction qui effectue la redirection . */
 int make_redirection(char* cmd, int last_status){
     int nb_red = 0;
     int *tab = malloc(10 * sizeof(int)); //position de chaque signe de redirection
