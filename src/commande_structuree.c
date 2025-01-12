@@ -5,12 +5,12 @@
 #include <sys/wait.h>
 #include <ctype.h>
 
-#include "../include/src/externe.h"
-#include "../include/src/decoupeCmd.h"
-#include "../include/bin/fsh.h"
-#include "../include/src/commande_structuree.h"
-#include "../include/src/boucle_for.h"
-#include "../include/src/redirection.h"
+#include "../include/externe.h"
+#include "../include/decoupeCmd.h"
+#include "../include/fsh.h"
+#include "../include/commande_structuree.h"
+#include "../include/boucle_for.h"
+#include "../include/redirection.h"
 
 #define MAX_COM 1024
 

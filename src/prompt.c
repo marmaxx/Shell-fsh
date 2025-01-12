@@ -6,7 +6,7 @@
 #include <signal.h>
 
 #include "../include/pwd.h"
-#include "../include/src/prompt.h"
+#include "../include/prompt.h"
 
 #define GREEN "\001\033[32m\002"  
 #define RED "\001\033[91m\002"   

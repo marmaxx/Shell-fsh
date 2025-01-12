@@ -6,11 +6,11 @@
 #include <ctype.h>
 #include <signal.h>
 
-#include "../include/src/externe.h"
-#include "../include/src/decoupeCmd.h"
-#include "../include/bin/fsh.h"
-#include "../include/src/pipe.h"
-#include "../include/src/redirection.h"
+#include "../include/externe.h"
+#include "../include/decoupeCmd.h"
+#include "../include/fsh.h"
+#include "../include/pipe.h"
+#include "../include/redirection.h"
 
 char **args = NULL;
 int args_count = 0;

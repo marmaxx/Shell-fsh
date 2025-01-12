@@ -9,8 +9,8 @@
 #include <limits.h>
 #define MAX_COM 64 
 
-#include "../include/src/cd.h"
-#include "../include/src/pwd.h"
+#include "../include/cd.h"
+#include "../include/pwd.h"
 
 int cd(char ** args) {
 

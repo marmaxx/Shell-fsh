@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <limits.h>
  
-#include "../include/src/pwd.h"
+#include "../include/pwd.h"
 
 struct dirent *entry;
 

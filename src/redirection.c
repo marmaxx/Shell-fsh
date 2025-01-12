@@ -6,9 +6,9 @@
 #include <dirent.h>
 #include <sys/fcntl.h>
 
-#include "../include/src/decoupeCmd.h"
-#include "../include/bin/fsh.h"
-#include "../include/src/redirection.h"
+#include "../include/decoupeCmd.h"
+#include "../include/fsh.h"
+#include "../include/redirection.h"
 
 int is_redirection(const char *command) {
     int inside_braces = 0;
