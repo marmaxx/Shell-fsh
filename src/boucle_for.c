@@ -8,11 +8,12 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-#include "../include/externe.h"
-#include "../include/decoupeCmd.h"
-#include "../include/ftype.h"
-#include "../include/fsh.h"
-#include "../include/commande_structuree.h"
+#include "../include/src/externe.h"
+#include "../include/src/decoupeCmd.h"
+#include "../include/src/ftype.h"
+#include "../include/bin/fsh.h"
+#include "../include/src/commande_structuree.h"
+#include "../include/src/boucle_for.h"
 
 #define MAX_COM 1024 
 
@@ -118,7 +119,7 @@ void concatenate_args(char *args[], char *result) {
     }
 }
 
-int boucle_for_simple (char ** args, int last_status){
+int boucle_for (char ** args, int last_status){
     int option_A = 0;
     int option_r = 0;
     int option_e = 0;
@@ -424,7 +425,7 @@ int exec_interieur_for(struct dirent *entry, char *name, int last_status,int opt
             fprintf(stderr, "%s#", args_with_rep[i]);
         }
         fprintf(stderr, "\n");*/
-        last_status = boucle_for_simple(args_with_rep, last_status);
+        last_status = boucle_for(args_with_rep, last_status);
         for (int i = 0; args_with_rep[i] != NULL; i++) {
             free(args_with_rep[i]);
         }

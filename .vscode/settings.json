@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "externe.h": "c",
+        "pwd.h": "c",
+        "decoupecmd.h": "c",
+        "boucle_for.h": "c",
+        "pipe.h": "c",
+        "redirection.h": "c"
+    }
+}

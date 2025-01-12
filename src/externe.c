@@ -9,10 +9,10 @@
 #include <errno.h>
 #include <signal.h>
 
-#include "../include/externe.h"
-#include "../include/prompt.h"
-#include "../include/decoupeCmd.h"
-#include "../include/ftype.h"
+#include "../include/src/externe.h"
+#include "../include/src/prompt.h"
+#include "../include/src/decoupeCmd.h"
+#include "../include/src/ftype.h"
 
 #define MAX_COM 64 
 

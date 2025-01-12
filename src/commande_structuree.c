@@ -5,17 +5,19 @@
 #include <sys/wait.h>
 #include <ctype.h>
 
-#include "../include/externe.h"
-#include "../include/decoupeCmd.h"
-#include "../include/fsh.h"
-#include "../include/commande_structuree.h"
-#include "../include/boucle_for_simple.h"
-#include "../include/redirection.h"
+#include "../include/src/externe.h"
+#include "../include/src/decoupeCmd.h"
+#include "../include/bin/fsh.h"
+#include "../include/src/commande_structuree.h"
+#include "../include/src/boucle_for.h"
+#include "../include/src/redirection.h"
 
 #define MAX_COM 1024
 
 volatile extern int sigint_recu;
 
+/* Fonction qui permet de vérifier si la commande en paramètre est structérée (avec un ou des ; )
+   Si la commande a une commande structurée mais à l'intérieur d'un if ou d'un for, cela renvoie 1. */
 int is_structured(const char *command) {
     int inside_braces = 1;
 
@@ -34,18 +36,17 @@ int is_structured(const char *command) {
     return 0; // Aucun point-virgule trouvé à l'intérieur des accolades
 }
 
-// Fonction pour enlever les espaces autour de la chaîne
+/* Fonction pour enlever les espaces autour de la chaîne */
 char* trim_whitespace(char *str) {
     while(isspace((unsigned char)*str)) str++;  // Enlever les espaces au début
-    if(*str == 0)  // Si la chaîne est vide après avoir enlevé les espaces
-        return str;
+    if(*str == 0)  return str;// Si la chaîne est vide après avoir enlevé les espaces
     char *end = str + strlen(str) - 1;
     while(end > str && isspace((unsigned char)*end)) end--;  // Enlever les espaces à la fin
     *(end+1) = 0;
     return str;
 }
 
-// Fonction pour vérifier si le caractère courant est dans une accolade
+/* Fonction pour vérifier si le caractère courant est dans une accolade */
 int is_in_braces(const char *command, int index) {
     int brace_count = 0;
     for (int i = 0; i < index; i++) {
@@ -58,7 +59,7 @@ int is_in_braces(const char *command, int index) {
     return brace_count > 0;  // Si on est à l'intérieur d'une accolade, renvoyer vrai
 }
 
-// Fonction pour découper la commande en sous-commandes tout en tenant compte des accolades
+/* Fonction pour découper la commande en sous-commandes tout en tenant compte des accolades */ 
 char **decoupe_commande_structuree(const char *command) {
     char **sub_commands = malloc(MAX_COM * sizeof(char *));
     if (!sub_commands) {
@@ -71,7 +72,6 @@ char **decoupe_commande_structuree(const char *command) {
     int length = strlen(command);
 
     for (int i = 0; i < length; i++) {
-        // Si on trouve un point-virgule et qu'on n'est pas dans des accolades
         if (command[i] == ';' && !is_in_braces(command, i)) {
             // On crée une sous-commande entre start_index et i
             int sub_cmd_length = i - start_index;
@@ -101,6 +101,7 @@ char **decoupe_commande_structuree(const char *command) {
     return sub_commands;
 }
 
+/* Fonction qui exécute la commande structurée après l'avoir découpée comme il faut */
 int *execute_structured_command(const char *command, int last_status){
     int *result = malloc (2 * sizeof(int));
     result[0] = 0;
@@ -115,12 +116,6 @@ int *execute_structured_command(const char *command, int last_status){
         while (end > args && isspace(*end)) *end-- = '\0';
 
         char ** new_args = decoupe(args);
-        /*for (int i = 0; new_args[i] != NULL; i++){
-            fprintf(stderr, "%s#", new_args[i]);
-        }
-        fprintf(stderr, "\n");*/
-        //printf("Exécution de la sous-commande : %s\n", args);
-        //printf("args = #%s#\n", args);
         char redirec [MAX_COM];
         concatenate_args(new_args, redirec);
         if (is_redirection(redirec) == 0){

@@ -6,7 +6,7 @@
 #include <signal.h>
 
 #include "../include/pwd.h"
-#include "../include/prompt.h"
+#include "../include/src/prompt.h"
 
 #define GREEN "\001\033[32m\002"  
 #define RED "\001\033[91m\002"   
@@ -16,8 +16,6 @@
 
 volatile int sigint_recu = 0;
 volatile int sigterm_recu = 0;
-
-
 
 // Fonction pour créer un prompt tronqué
 void create_prompt(int last_status, char *prompt, size_t size) {   

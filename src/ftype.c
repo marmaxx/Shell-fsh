@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "../include/src/ftype.h"
 
 int ftype (char ** args){
     //Vérification du nom de la commande

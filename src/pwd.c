@@ -8,11 +8,11 @@
 #include <sys/stat.h>
 #include <limits.h>
  
-#include "../include/pwd.h"
+#include "../include/src/pwd.h"
 
 struct dirent *entry;
 
-// Fonction récupérant le nom du répertoire courant
+/* Fonction récupérant le nom du répertoire courant */
 char *nom_du_repertoire() {
     int fd_cur = open(".", O_RDONLY);
     if (fd_cur == -1) {
@@ -71,7 +71,7 @@ char *nom_du_repertoire() {
     free(dir_name);
 }
 
-// Fonction qui récupère le chemin absolu du répertoire courant
+/* Fonction qui récupère le chemin absolu du répertoire courant */
 char *chemin_absolu() {
     // On sauvegarde le répertoire courant
     char saved_cwd[PATH_MAX];
