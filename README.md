@@ -1,5 +1,7 @@
 Projet : programmation d'un interpréteur de commandes
+
 L3 Informatique - Système
+
 Il est important de bien lire le sujet jusqu'au bout et de bien y
 réfléchir avant de se lancer dans la programmation du projet.
 
@@ -17,10 +19,12 @@ partir de votre shell le seront en premier-plan.
 Plus précisément, fsh doit respecter les prescriptions suivantes :
 
 Commandes externes
+
 fsh peut exécuter toutes les commandes externes, avec ou sans
 arguments, en tenant compte de la variable d'environnement PATH.
 
 Commandes internes
+
 fsh possède les commandes internes listées ci-dessous.  Elles ont
 comme valeur de retour 0 en cas de succès (à l'exception d'exit,
 naturellement), et 1 en cas d'échec.
@@ -50,6 +54,7 @@ Affiche le type du fichier de référence REF (s'il s'agit d'une
 référence valide) : directory, regular file , symbolic link, named pipe, other.
 
 Redirections vers des fichiers
+
 fsh gère les redirections suivantes :
 
 
@@ -93,10 +98,12 @@ exécutée, et la valeur de retour est 1.
 Hiérarchie des lignes de commande
 
 Commandes simples
+
 Une commande simple est une ligne de commande exécutant une unique
 commande, interne ou externe, avec ou sans redirection.
 
 Pipelines
+
 Si CMD_1 et CMD_2 sont deux commandes simples, CMD_1 | CMD_2
 provoque l'exécution simultanée de CMD_1 et CMD_2, avec
 redirection de la sortie standard de CMD_1 et de l'entrée standard de
@@ -115,6 +122,7 @@ Les espaces de part et d'autre du symbole | sont requis.
 La valeur de retour est celle de CMD_N.
 
 Commandes structurées
+
 Une commande structurée est soit un pipeline, soit une ligne de
 commande d'une des formes suivantes :
 
@@ -146,13 +154,10 @@ valeur de la variable de boucle F, désignée par $F. Par souci de
 simplification, les noms de variables sont limités à un caractère.
 Effet des options :
 
-
 -A : étend la portée de la boucle aux fichiers cachés (sauf . et
 ..);
 
-
 -r : parcours récursif de toute l'arborescence de racine REP;
-
 
 -e EXT : filtrage des résultats selon l'extension : les fichiers dont
 le nom de base ne se termine pas par .EXT sont ignorés; pour les
@@ -160,15 +165,12 @@ autres fichiers, la variable de boucle F prend pour valeur la
 référence du fichier amputée de son extension, pour permettre des
 usages tels que for F in . -e jpg { convert $F.jpg $F.png };
 
-
 -t TYPE : filtrage des résultats selon le type de fichier : f pour
 les fichiers ordinaires, d pour les répertoires, l pour les liens
 symboliques, p pour les tubes;
 
-
 -p MAX : permet le traitement en parallèle d'un maximum de MAX
 tours de boucle.
-
 
 Addendum : si REP est une référence invalide, ou si une option non
 reconnue est fournie, la commande échoue avec valeur de retour 1.
@@ -177,6 +179,7 @@ différents tours de boucle.
 Les espaces de part et d'autre des symboles ;, { et } sont requis.
 
 Autres lignes de commande
+
 Les commandes structurées sont les lignes de commande les plus génériques
 que fsh doit savoir interpréter et exécuter. En particulier, il n'est
 pas demandé de pouvoir rediriger l'entrée ou la sortie d'une commande
@@ -185,8 +188,8 @@ Addendum : en cas d'erreur de syntaxe, la valeur de retour est 2.
 La frontière entre erreur de syntaxe et arguments erronés étant ténue,
 certains cas limites peuvent retourner 1 ou 2 selon l'interprétation.
 Ces cas ne seront pas testés.
-Exemples et contre-exemples :
 
+Exemples et contre-exemples :
 
 if test { echo a } else motEnTrop { echo b } ou for f in { echo }
 sont des erreurs de syntaxe : des constituants attendus à une certaine
@@ -201,8 +204,8 @@ for f in . aaaa { echo } est un cas limite qui peut être considéré
 comme une erreur de syntaxe ou un usage d'options erronées selon le moment
 où l'erreur est décelée.
 
-
 Gestion de la ligne de commande
+
 fsh fonctionne en mode interactif : il affiche une invite de commande
 (prompt), lit la ligne de commande saisie par l'utilisateur, la découpe
 en mots selon les (blocs d')espaces, interprète les éventuels caractères
@@ -225,13 +228,13 @@ add_history(ligne);
 /* ajoute la ligne à l'historique, permettant sa réutilisation avec les
  * flèches du clavier */
 
-
 L'affichage du prompt de fsh est réalisé sur sa sortie erreur.
 Avec la bibliothèque readline, ce comportement s'obtient en indiquant
 rl_outstream = stderr; avant le premier appel à la fonction
 readline().
 
 Formatage du prompt
+
 Le prompt est limité à 30 caractères (apparents, ie. sans compter les
 indications de couleur), et est formé des éléments suivants :
 
@@ -253,6 +256,7 @@ chaque bascule de couleur doit être entourée des balises '\001' et
 '\002' (qui indiquent que la portion de chaîne qu'elles délimitent est
 formée de caractères non imprimables et doit donc être ignorée dans le
 calcul de la longueur du texte à afficher).
+
 Par exemple (sans la coloration) :
 
 [0]/home/titi$ cd /tmp/pas/trop/long
@@ -263,9 +267,8 @@ Par exemple (sans la coloration) :
 cd: no such file or directory: repertoire-inexistant
 [1]...ong/mais/la/ca/depasse$ 
 
-
-
 Sensibilité aux signaux
+
 fsh ignore le signal SIGTERM,
 contrairement aux processus exécutant des commandes externes.
 Lorsque l'exécution d'une commande est interrompue par la réception d'un
@@ -287,6 +290,7 @@ Bonus : faire en sorte que les boucles parallèles puissent
 également être interrompues.
 
 Modalités de réalisation (et de test)
+
 Le projet est à faire par équipes de 3 étudiants, exceptionnellement 2 si
 une situation particulière le justifie. La composition de chaque équipe
 devra être envoyée par mail à Dominique Poulalhon avec pour sujet [SY5] équipe projet au plus tard le 10 novembre 2024, avec copie à chaque
@@ -327,11 +331,13 @@ clairement, vous aurez quand même 0 (mais vous éviterez une demande de
 convocation de la section disciplinaire).
 
 Modalités de rendu
+
 Le projet sera évalué en 3 phases : deux jalons intermédiaires, sans
 soutenance, et un rendu final avec soutenance. Les deux jalons
 intermédiaires seront évalués par des tests automatiques.
 
 Premier jalon jeudi 28 novembre
+
 La version à évaluer devra être spécifiée à l'aide du tag jalon-1 sur
 la branche main.
 Pour créer le tag : se placer sur le commit à étiqueter et faire :
@@ -356,6 +362,7 @@ simple
 
 
 Deuxième jalon jeudi 19 décembre
+
 La version à évaluer devra être spécifiée à l'aide du tag jalon-2.
 Points testés : le projet complet à l'exception :
 
@@ -367,19 +374,18 @@ Par exemple, on demande que cette ligne de commande-ci fonctionne correctement :
 
 for F in dir { echo $F ; if test -d $F { for G in $F -A { echo $G } } }
 
-
 mais pas forcément celle-là :
 
 cat fichier | tr a A
 
-
-
 Rendu final début janvier
+
 La version à évaluer devra être spécifiée à l'aide du tag rendu-final.
 Le projet final devra être rendu à une date encore à définir mais au plus
 tard le 10 janvier, pour des soutenances entre le 13 et le 17 janvier.
 
 Participation effective
+
 Les projets sont des travaux de groupe, pas des travaux à répartir
 entre vous ("je fais le projet de Prog fonctionnelle, tu fais celui de
 Systèmes"). La participation effective d'un étudiant au projet de son
